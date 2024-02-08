@@ -1,0 +1,4 @@
+AWS_28-11-2023.txt|b8c71bb8de466745bd77b9894bcac1c2|93
+emp.csv|2f67292983870c49f4ee50330c4f7b7f|877
+hospital_data.csv|ba08dd117e9921fb646b4b4f3cf49e96|6
+purchase_data.csv|53797aba3d007b8d8ca2da39078447c4|12

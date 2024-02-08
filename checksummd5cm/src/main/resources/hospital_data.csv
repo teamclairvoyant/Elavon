@@ -1,0 +1,6 @@
+patient_id,medical_condition,admission_date,discharge_date,readmission_date
+1,Heart Disease,2022-01-15,2022-01-30,2022-02-10
+2,Diabetes,2022-02-05,2022-02-20,2022-03-05
+3,Stroke,2022-03-10,2022-03-25,
+4,Cancer,2022-04-15,2022-04-30,2022-05-20
+5,Respiratory Infection,2022-05-05,2022-05-20,
