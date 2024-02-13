@@ -99,7 +99,7 @@ public class SpringBatchConfig {
             sb.append(responseJSON.get(uuIdCol)+"_");
         }
         sb.append(new Timestamp(System.currentTimeMillis()));
-        responseJSON.put("recordId", sb.toString());
+        responseJSON.put("record_id", sb.toString());
         return responseJSON.toString();
     }
 
@@ -116,7 +116,7 @@ public class SpringBatchConfig {
         String[] columnsArr = headerColumns.split(",");
 
         JSONObject jsonObject = new JSONObject();
-        for (int i = 0; i < columnsArr.length; i++) {
+        for (int i = 0; i < columnsArr.length-1; i++) {
             jsonObject.put(columnsArr[i], data[i]);
         }
         return jsonObject;
@@ -137,7 +137,7 @@ public class SpringBatchConfig {
                 data[i] = jsonObject.get(key).toString();
                 i++;
             }
-            data[i] = jsonObject.get("recordId").toString();
+            data[i] = jsonObject.get("record_id").toString();
             try (FileWriter outputFile = new FileWriter(file, true); CSVWriter writer = new CSVWriter(outputFile, ',', CSVWriter.NO_QUOTE_CHARACTER)) {
                 writer.writeNext(data);
             } catch (IOException e) {
