@@ -137,7 +137,6 @@ public class SpringBatchConfig {
                 data[i] = jsonObject.get(key).toString();
                 i++;
             }
-            data[i] = jsonObject.get("record_id").toString();
             try (FileWriter outputFile = new FileWriter(file, true); CSVWriter writer = new CSVWriter(outputFile, ',', CSVWriter.NO_QUOTE_CHARACTER)) {
                 writer.writeNext(data);
             } catch (IOException e) {
