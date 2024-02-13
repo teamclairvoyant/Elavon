@@ -35,6 +35,9 @@ public class SpringBatchConfig {
     @Value("${spring.batch.file.filePath}")
     private String filePath;
 
+    @Value("${spring.batch.file.decryptedFilePath}")
+    private String decryptedFilePath;
+
     @Value("${spring.batch.file.headerColumns}")
     private String headerColumns;
 
@@ -46,7 +49,6 @@ public class SpringBatchConfig {
 
     @Value("${spring.batch.data.fieldsToBeTokenized}")
     private String fieldsToBeTokenized;
-
 
     @Autowired
     private StepBuilderFactory stepBuilderFactory;
@@ -62,7 +64,7 @@ public class SpringBatchConfig {
     @StepScope
     public FlatFileItemReader<String> flatFileItemReader() {
         FlatFileItemReader<String> flatFileItemReader = new FlatFileItemReader<>();
-        FileSystemResource resource = new FileSystemResource(filePath);
+        FileSystemResource resource = new FileSystemResource(decryptedFilePath);
         flatFileItemReader.setResource(resource);
         flatFileItemReader.setName("CSV-Reader");
         flatFileItemReader.setLinesToSkip(1);
@@ -83,17 +85,15 @@ public class SpringBatchConfig {
     public ItemProcessor<String, String> itemProcessor() {
         return item -> {
 
+            System.out.println(item);
+
             JSONObject jsonObject = convertToJSON(item);
 
             System.out.println(jsonObject);
 
-            String response = decrypt(jsonObject);
+            tokenizeData(jsonObject);
 
-            JSONObject responseJsonObject = new JSONObject(response);
-
-            tokenizeData(responseJsonObject);
-
-            return addRecordId(responseJsonObject);
+            return addRecordId(jsonObject);
         };
     }
 
@@ -119,6 +119,7 @@ public class SpringBatchConfig {
         response.put("record_id", sb.toString());
         return response.toString();
     }
+
 
     private String decrypt(JSONObject jsonObject) {
         HttpHeaders headers = new HttpHeaders();

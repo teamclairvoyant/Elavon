@@ -6,6 +6,10 @@ import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 
+import javax.crypto.Cipher;
+import javax.crypto.CipherOutputStream;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -18,13 +22,45 @@ public class SpringBatchListener implements JobExecutionListener {
     @Value("${spring.batch.file.filePath}")
     private String filePath;
 
+    @Value("${spring.batch.file.decryptedFilePath}")
+    private String decryptedFilePath;
+
     @Autowired
     private AzureADLSPush azureADLSPush;
 
+    private static final String ALGORITHM = "AES";
+    private static final String TRANSFORMATION = "AES";
+
+    private static final String SECRET_KEY = "MySecretKey12345";
+
     @Override
     public void beforeJob(JobExecution jobExecution) {
-        System.out.println("before job");
+        decrypt();
     }
+
+    public void decrypt() {
+        try {
+            SecretKey secretKey = new SecretKeySpec(SECRET_KEY.getBytes(), ALGORITHM);
+            Cipher cipher = Cipher.getInstance(TRANSFORMATION);
+            cipher.init(Cipher.DECRYPT_MODE, secretKey);
+            File inputFile = new File(filePath);
+            File outputFile = new File(decryptedFilePath);
+            try (InputStream inputStream = new FileInputStream(inputFile);
+                 OutputStream outputStream = new FileOutputStream(outputFile);
+                 CipherOutputStream cipherOutputStream = new CipherOutputStream(outputStream, cipher);
+            ) {
+                byte[] buffer = new byte[1024];
+                int bytesRead;
+                while ((bytesRead = inputStream.read(buffer)) >= 0) {
+                    cipherOutputStream.write(buffer, 0, bytesRead);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error encrypting/decrypting file: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
 
     @Override
     public void afterJob(JobExecution jobExecution) {
