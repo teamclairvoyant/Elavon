@@ -28,7 +28,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Timestamp;
-import java.util.UUID;
 
 @Configuration
 public class SpringBatchConfig {
@@ -44,6 +43,9 @@ public class SpringBatchConfig {
 
     @Value("${spring.batch.file.result}")
     private String resultPath;
+
+    @Value("${spring.batch.data.fieldsToBeTokenized}")
+    private String fieldsToBeTokenized;
 
 
     @Autowired
@@ -87,20 +89,35 @@ public class SpringBatchConfig {
 
             String response = decrypt(jsonObject);
 
-            return addRecordId(response);
+            JSONObject responseJsonObject = new JSONObject(response);
+
+            tokenizeData(responseJsonObject);
+
+            return addRecordId(responseJsonObject);
         };
     }
 
-    private String addRecordId(String response) {
-        JSONObject responseJSON = new JSONObject(response);
+    private void tokenizeData(JSONObject responseJsonObject) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        String[] fieldsToBeTokenizedArray = fieldsToBeTokenized.split(",");
+        for (String fieldToTokenize : fieldsToBeTokenizedArray
+        ) {
+            HttpEntity<String> httpEntity = new HttpEntity<>(responseJsonObject.get(fieldToTokenize).toString(), headers);
+            String tokenizedValue = restTemplate.postForObject("http://localhost:8080/cryptoapp/tokenize", httpEntity, String.class);
+            responseJsonObject.put(fieldToTokenize, tokenizedValue);
+        }
+    }
+
+    private String addRecordId(JSONObject response) {
         String[] uuidCols = uuidColumns.split(",");
         StringBuilder sb = new StringBuilder();
         for (String uuIdCol : uuidCols) {
-            sb.append(responseJSON.get(uuIdCol)+"_");
+            sb.append(response.get(uuIdCol) + "_");
         }
         sb.append(new Timestamp(System.currentTimeMillis()));
-        responseJSON.put("record_id", sb.toString());
-        return responseJSON.toString();
+        response.put("record_id", sb.toString());
+        return response.toString();
     }
 
     private String decrypt(JSONObject jsonObject) {
@@ -116,7 +133,7 @@ public class SpringBatchConfig {
         String[] columnsArr = headerColumns.split(",");
 
         JSONObject jsonObject = new JSONObject();
-        for (int i = 0; i < columnsArr.length-1; i++) {
+        for (int i = 0; i < columnsArr.length - 1; i++) {
             jsonObject.put(columnsArr[i], data[i]);
         }
         return jsonObject;

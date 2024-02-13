@@ -20,4 +20,10 @@ public class CryptoController {
         return cryptoService.decryptJSONData(dataToBeDecrypted);
     }
 
+    @PostMapping("/tokenize")
+    public String tokenize(@RequestBody String dataToBeTokenized) {
+        System.out.println("tokenized Data:"+cryptoService.tokenize(dataToBeTokenized));
+        return cryptoService.tokenize(dataToBeTokenized);
+    }
+
 }

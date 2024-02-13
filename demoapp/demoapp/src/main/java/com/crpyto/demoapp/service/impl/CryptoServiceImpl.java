@@ -23,6 +23,17 @@ public class CryptoServiceImpl implements CryptoService {
     private Base64.Encoder base64Encoder;
 
     @Override
+    public String tokenize(String dataToBeTokenized) {
+        System.out.println("dataToBeTokenized"+dataToBeTokenized);
+        if (null != dataToBeTokenized) {
+            byte[] dataToBeTokenizedBytes = new byte[dataToBeTokenized.getBytes().length];
+            secureRandom.nextBytes(dataToBeTokenizedBytes);
+            return base64Encoder.encodeToString(dataToBeTokenizedBytes);
+        }
+        return null;
+    }
+
+    @Override
     public String decryptJSONData(String data) {
         JSONObject jsonObject = new JSONObject(data);
         JSONObject responseJSON = new JSONObject();
@@ -43,10 +54,10 @@ public class CryptoServiceImpl implements CryptoService {
             SecretKey originalKey = new SecretKeySpec(Arrays.copyOf(decodedKey, 16), "AES");
             cipher.init(Cipher.DECRYPT_MODE, originalKey);
             byte[] cipherText = cipher.doFinal(Base64.getDecoder().decode(value));
-            System.out.println("secKey: " + secretKey);
-            System.out.println("originalKey: " + originalKey);
+//            System.out.println("secKey: " + secretKey);
+//            System.out.println("originalKey: " + originalKey);
             decryptedData = new String(cipherText);
-            System.out.println("DecryptedData: " + decryptedData);
+//            System.out.println("DecryptedData: " + decryptedData);
             return decryptedData;
         } catch (Exception e) {
             e.printStackTrace();
