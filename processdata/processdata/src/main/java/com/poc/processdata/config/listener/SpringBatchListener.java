@@ -13,6 +13,8 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 public class SpringBatchListener implements JobExecutionListener {
 
@@ -28,13 +30,22 @@ public class SpringBatchListener implements JobExecutionListener {
     @Autowired
     private AzureADLSPush azureADLSPush;
 
-    private static final String ALGORITHM = "AES";
-    private static final String TRANSFORMATION = "AES";
 
-    private static final String SECRET_KEY = "MySecretKey12345";
+    @Value("${spring.batch.file.ALGORITHM}")
+    private String ALGORITHM;
+    @Value("${spring.batch.file.TRANSFORMATION}")
+     private String TRANSFORMATION;
 
+    @Value("${spring.batch.file.SECRET_KEY}")
+    String SECRET_KEY;
+
+    private long startTime;
+    private long endTime;
     @Override
     public void beforeJob(JobExecution jobExecution) {
+         startTime = System.currentTimeMillis();
+//        long timesec = startTime/1000;
+        System.out.println("Job started at: " + startTime);
         decrypt();
     }
 
@@ -65,12 +76,12 @@ public class SpringBatchListener implements JobExecutionListener {
     @Override
     public void afterJob(JobExecution jobExecution) {
         try {
-// Calculate checksum, record count, and file name
+            // Calculate checksum, record count, and file name
             String checksum = calculateMD5Checksum(filePath);
             int recordCount = getRecordCount(filePath);
             String fileName = getFileName(filePath);
             String qcFileName = fileName.substring(0, fileName.indexOf(".")) + "-qc.txt";
-// Write to QC file
+                // Write to QC file
             writeQCFile(qcFileName, fileName, recordCount, checksum);
             azureADLSPush.pushToADLS();
             System.out.println("QC file generated: " + qcFileName);
@@ -115,6 +126,12 @@ public class SpringBatchListener implements JobExecutionListener {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(resultPath + "\\" + qcFileName))) {
             writer.write(fileName + "|" + recordCount + "|" + checksum);
         }
+        long endTime = System.currentTimeMillis();
+        System.out.println("Job finished at: " + endTime);
+
+        long durationSeconds = (endTime - startTime) / 1000;
+        System.out.println("Job duration: " + durationSeconds + " seconds");
     }
+
 
 }
