@@ -1,4 +1,4 @@
-package com.poc.processdata;
+package com.poc.processdata.azure;
 
 import com.azure.storage.file.datalake.DataLakeFileClient;
 import com.azure.storage.file.datalake.DataLakeFileSystemClient;

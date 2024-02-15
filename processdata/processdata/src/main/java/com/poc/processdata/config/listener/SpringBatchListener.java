@@ -1,11 +1,12 @@
 package com.poc.processdata.config.listener;
 
-import com.poc.processdata.AzureADLSPush;
+import com.poc.processdata.azure.AzureADLSPush;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherOutputStream;
@@ -16,10 +17,12 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 @Slf4j
+@RequiredArgsConstructor
+@Component
 public class SpringBatchListener implements JobExecutionListener {
 
     @Value("${spring.batch.file.SECRET_KEY}")
-    String SECRET_KEY;
+    private String secretKey;
     @Value("${spring.batch.file.result}")
     private String resultPath;
     @Value("${spring.batch.file.filePath}")
@@ -29,17 +32,16 @@ public class SpringBatchListener implements JobExecutionListener {
      */
     @Value("${spring.batch.file.decryptedFilePath}")
     private String decryptedFilePath;
+    @Value("${spring.batch.file.ALGORITHM}")
+    private String algorithm;
+    @Value("${spring.batch.file.TRANSFORMATION}")
+    private String transformation;
     /*
      pushing data to ADLS
      */
-    @Autowired
-    private AzureADLSPush azureADLSPush;
-    @Value("${spring.batch.file.ALGORITHM}")
-    private String ALGORITHM;
-    @Value("${spring.batch.file.TRANSFORMATION}")
-    private String TRANSFORMATION;
+    private final AzureADLSPush azureADLSPush;
+
     private long startTime;
-    private long endTime;
 
     /**
      * Retrieves and returns the record count from the specified file path.
@@ -52,7 +54,7 @@ public class SpringBatchListener implements JobExecutionListener {
     public static int getRecordCount(String filePath) throws IOException {
         int count = 0;
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            while (reader.readLine() != null) {
+            while (null != reader.readLine()) {
                 count++;
             }
         }
@@ -73,9 +75,9 @@ public class SpringBatchListener implements JobExecutionListener {
         */
     public void decrypt() {
         try {
-            SecretKey secretKey = new SecretKeySpec(SECRET_KEY.getBytes(), ALGORITHM);
-            Cipher cipher = Cipher.getInstance(TRANSFORMATION);
-            cipher.init(Cipher.DECRYPT_MODE, secretKey);
+            SecretKey secretKeySpec = new SecretKeySpec(this.secretKey.getBytes(), algorithm);
+            Cipher cipher = Cipher.getInstance(transformation);
+            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
             File inputFile = new File(filePath);
             File outputFile = new File(decryptedFilePath);
             try (InputStream inputStream = new FileInputStream(inputFile);

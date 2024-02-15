@@ -2,6 +2,7 @@ package com.poc.processdata.config;
 
 import com.opencsv.CSVWriter;
 import com.poc.processdata.config.listener.SpringBatchListener;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.batch.core.Job;
@@ -15,7 +16,6 @@ import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.mapping.PassThroughLineMapper;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,7 +35,10 @@ Configuration class for Spring Batch, defining properties, and writing necessary
  */
 @Slf4j
 @Configuration
+@RequiredArgsConstructor
 public class SpringBatchConfig {
+
+    private static final String FILE_DELIMITER = "\\";
 
     @Value("${spring.batch.file.filePath}")
     private String filePath;
@@ -55,14 +58,13 @@ public class SpringBatchConfig {
     @Value("${spring.batch.data.fieldsToBeTokenized}")
     private String fieldsToBeTokenized;
 
-    @Autowired
-    private StepBuilderFactory stepBuilderFactory;
+    private final StepBuilderFactory stepBuilderFactory;
 
-    @Autowired
-    private JobBuilderFactory jobBuilderFactory;
+    private final JobBuilderFactory jobBuilderFactory;
 
-    @Autowired
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
+
+    private final SpringBatchListener springBatchListener;
 
     /*
     This will create a beam of Item reader and item reader reads data from source
@@ -78,12 +80,12 @@ public class SpringBatchConfig {
         flatFileItemReader.setName("CSV-Reader");
         flatFileItemReader.setLinesToSkip(1);
         flatFileItemReader.setLineMapper(new PassThroughLineMapper());
-        File file = new File(resultPath + "\\" + resource.getFilename());
+        File file = new File(resultPath + FILE_DELIMITER + resource.getFilename());
         try (FileWriter outputFile = new FileWriter(file); CSVWriter writer = new CSVWriter(outputFile)) {
             String[] header = headerColumns.split(",");
             writer.writeNext(header);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error("error while writing headers", e);
         }
 
         return flatFileItemReader;
@@ -97,7 +99,7 @@ public class SpringBatchConfig {
     public ItemProcessor<String, String> itemProcessor() {
         return item -> {
             log.info("processing data");
-            System.out.println(item);
+            log.info(item);
 
             JSONObject jsonObject = convertToJSON(item);
 
@@ -165,7 +167,7 @@ public class SpringBatchConfig {
     public ItemWriter<String> itemWriter() {
         return items -> items.forEach(item ->
         {
-            File file = new File(resultPath + "\\" + filePath.substring(filePath.lastIndexOf("\\")));
+            File file = new File(resultPath + FILE_DELIMITER + filePath.substring(filePath.lastIndexOf("\\")));
             JSONObject jsonObject = new JSONObject(item);
             String columns = headerColumns;
             String[] columnsArr = columns.split(",");
@@ -178,7 +180,7 @@ public class SpringBatchConfig {
             try (FileWriter outputFile = new FileWriter(file, true); CSVWriter writer = new CSVWriter(outputFile, ',', CSVWriter.NO_QUOTE_CHARACTER)) {
                 writer.writeNext(data);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                log.error("error while writing", e);
             }
         });
     }
@@ -199,17 +201,13 @@ public class SpringBatchConfig {
     /*
     Create and return a new instance of the SpringBatchListener as a JobExecutionListener
      */
-    @Bean
-    public JobExecutionListener jobExecutionListener() {
-        return new SpringBatchListener();
-    }
 
     /*
     Configure and build a Spring Batch job named "job" with a listener, incrementer, and a starting step
      */
     @Bean
     public Job job() {
-        return jobBuilderFactory.get("job").listener(jobExecutionListener())
+        return jobBuilderFactory.get("job").listener(springBatchListener)
                 .incrementer(new RunIdIncrementer())
                 .start(step1())
                 .build();

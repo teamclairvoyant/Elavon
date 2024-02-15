@@ -55,8 +55,8 @@ class SpringBatchConfigTests {
     @SneakyThrows
     void shouldReadFromFileAndPersistIntoDataBaseAndMoveToProcessedDirectory() {
         //GIVEN
-        Path shouldCompleteFilePath = Path.of(INPUT_DIRECTORY + File.separator + "order.csv");
-        Path inputFile = Files.createFile(shouldCompleteFilePath);
+        Path completeFilePath = Path.of(INPUT_DIRECTORY + File.separator + "order.csv");
+        Path inputFile = Files.createFile(completeFilePath);
 
         Files.writeString(inputFile, SpringBatchConfigTestsUtils.supplyValidContent());
 
