@@ -14,42 +14,63 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
+
 @Slf4j
 public class SpringBatchListener implements JobExecutionListener {
 
+    @Value("${spring.batch.file.SECRET_KEY}")
+    String SECRET_KEY;
     @Value("${spring.batch.file.result}")
     private String resultPath;
-
     @Value("${spring.batch.file.filePath}")
     private String filePath;
-
+    /*
+    decrypted file path
+     */
     @Value("${spring.batch.file.decryptedFilePath}")
     private String decryptedFilePath;
-
+    /*
+     pushing data to ADLS
+     */
     @Autowired
     private AzureADLSPush azureADLSPush;
-
-
     @Value("${spring.batch.file.ALGORITHM}")
     private String ALGORITHM;
     @Value("${spring.batch.file.TRANSFORMATION}")
-     private String TRANSFORMATION;
-
-    @Value("${spring.batch.file.SECRET_KEY}")
-    String SECRET_KEY;
-
+    private String TRANSFORMATION;
     private long startTime;
     private long endTime;
+
+    /**
+     * Retrieves and returns the record count from the specified file path.
+     *
+     * @param filePath The path of the file for which the record count is retrieved.
+     * @return The count of records in the file.
+     * @throws IOException If an I/O error occurs while reading the file.
+     */
+
+    public static int getRecordCount(String filePath) throws IOException {
+        int count = 0;
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+            while (reader.readLine() != null) {
+                count++;
+            }
+        }
+        return count - 1;
+    }
+
     @Override
     public void beforeJob(JobExecution jobExecution) {
-         startTime = System.currentTimeMillis();
+        startTime = System.currentTimeMillis();
         long timesec = startTime;
         log.info("Job started at: " + timesec);
         decrypt();
     }
 
+    /*
+    Decrypts the file specified by 'filePath' using the provided SECRET_KEY and writes the decrypted content to 'decryptedFilePath'.
+    Implementation details for file decryption using a specified algorithm and key
+        */
     public void decrypt() {
         try {
             SecretKey secretKey = new SecretKeySpec(SECRET_KEY.getBytes(), ALGORITHM);
@@ -73,16 +94,18 @@ public class SpringBatchListener implements JobExecutionListener {
         }
     }
 
-
+    /*
+    Implementation details for calculating checksum, record count, and file name, writing to QC file, pushing to Azure ADLS, and logging the generated QC file name
+     */
     @Override
     public void afterJob(JobExecution jobExecution) {
         try {
-            // Calculate checksum, record count, and file name
+
             String checksum = calculateMD5Checksum(filePath);
             int recordCount = getRecordCount(filePath);
             String fileName = getFileName(filePath);
             String qcFileName = fileName.substring(0, fileName.indexOf(".")) + "-qc.txt";
-                // Write to QC file
+
             writeQCFile(qcFileName, fileName, recordCount, checksum);
             azureADLSPush.pushToADLS();
             log.info("QC file generated: " + qcFileName);
@@ -91,6 +114,15 @@ public class SpringBatchListener implements JobExecutionListener {
         }
     }
 
+    /*
+    /**
+     * Calculates and returns the MD5 checksum for the specified file path.
+     *
+     * @param filePath The path of the file for which the MD5 checksum is calculated.
+     * @return The MD5 checksum as a hexadecimal string.
+     * @throws IOException              If an I/O error occurs while reading the file.
+     * @throws NoSuchAlgorithmException If the MD5 algorithm is not available.
+     */
     public String calculateMD5Checksum(String filePath) throws IOException, NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("MD5");
         try (InputStream is = new FileInputStream(filePath)) {
@@ -108,20 +140,20 @@ public class SpringBatchListener implements JobExecutionListener {
         return sb.toString();
     }
 
-    public static int getRecordCount(String filePath) throws IOException {
-        int count = 0;
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
-            while (reader.readLine() != null) {
-                count++;
-            }
-        }
-        return count - 1;
-    }
-
     public String getFileName(String filePath) {
         File file = new File(filePath);
         return file.getName();
     }
+
+    /**
+     * Writes Quality Control information to a file, including file name, record count, and checksum.
+     *
+     * @param qcFileName  The name of the QC file to be written.
+     * @param fileName    The original file name for which QC information is recorded.
+     * @param recordCount The count of records in the file.
+     * @param checksum    The checksum value of the file content.
+     * @throws IOException If an I/O error occurs while writing the QC file.
+     */
 
     public void writeQCFile(String qcFileName, String fileName, int recordCount, String checksum) throws IOException {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(resultPath + "\\" + qcFileName))) {

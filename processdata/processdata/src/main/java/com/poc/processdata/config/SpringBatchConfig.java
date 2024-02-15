@@ -1,7 +1,8 @@
 package com.poc.processdata.config;
-import lombok.extern.slf4j.Slf4j;
+
 import com.opencsv.CSVWriter;
 import com.poc.processdata.config.listener.SpringBatchListener;
+import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobExecutionListener;
@@ -29,6 +30,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Timestamp;
 
+/*
+Configuration class for Spring Batch, defining properties, and writing necessary components.
+ */
 @Slf4j
 @Configuration
 public class SpringBatchConfig {
@@ -60,7 +64,10 @@ public class SpringBatchConfig {
     @Autowired
     private RestTemplate restTemplate;
 
-
+    /*
+    This will create a beam of Item reader and item reader reads data from source
+    Created FlatFileItemReader instance and configured it
+     */
     @Bean
     @StepScope
     public FlatFileItemReader<String> flatFileItemReader() {
@@ -82,6 +89,9 @@ public class SpringBatchConfig {
         return flatFileItemReader;
     }
 
+    /*
+    Process each item: log, print, convert to JSON, tokenize, and add record ID
+     */
     @Bean
     @StepScope
     public ItemProcessor<String, String> itemProcessor() {
@@ -91,7 +101,7 @@ public class SpringBatchConfig {
 
             JSONObject jsonObject = convertToJSON(item);
 
-            log.info("get json objects",jsonObject);
+            log.info("get json objects", jsonObject);
 
             tokenizeData(jsonObject);
 
@@ -99,6 +109,9 @@ public class SpringBatchConfig {
         };
     }
 
+    /*
+    Tokenize the specified fields in the JSONObject using an external service
+     */
     private void tokenizeData(JSONObject responseJsonObject) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -111,6 +124,9 @@ public class SpringBatchConfig {
         }
     }
 
+    /*
+    Create a unique record ID by concatenating values from specified UUID columns and timestamp
+     */
     private String addRecordId(JSONObject response) {
         String[] uuidCols = uuidColumns.split(",");
         StringBuilder sb = new StringBuilder();
@@ -123,13 +139,9 @@ public class SpringBatchConfig {
     }
 
 
-    private String decrypt(JSONObject jsonObject) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<String> httpEntity = new HttpEntity<>(jsonObject.toString(), headers);
-        return restTemplate.postForObject("http://localhost:8080/cryptoapp/decrypt", httpEntity, String.class);
-    }
-
+    /*
+    Convert comma-separated data into a JSONObject using header columns as keys
+     */
     private JSONObject convertToJSON(String item) {
         String[] data = item.split(",");
 
@@ -142,6 +154,12 @@ public class SpringBatchConfig {
         return jsonObject;
     }
 
+    /*
+    Writing each item to a CSV file using specified header columns and
+    Converting the item string to a JSONObject
+    Extract data corresponding to header columns
+    and Throw a runtime exception if an IO exception occurs
+     */
     @Bean
     @StepScope
     public ItemWriter<String> itemWriter() {
@@ -165,6 +183,9 @@ public class SpringBatchConfig {
         });
     }
 
+    /*
+    Configure and build a Step named "step1" to read, process, and write data in chunks
+     */
     @Bean
     public Step step1() {
         return stepBuilderFactory.get("step1")
@@ -175,11 +196,17 @@ public class SpringBatchConfig {
                 .build();
     }
 
+    /*
+    Create and return a new instance of the SpringBatchListener as a JobExecutionListener
+     */
     @Bean
     public JobExecutionListener jobExecutionListener() {
         return new SpringBatchListener();
     }
 
+    /*
+    Configure and build a Spring Batch job named "job" with a listener, incrementer, and a starting step
+     */
     @Bean
     public Job job() {
         return jobBuilderFactory.get("job").listener(jobExecutionListener())
