@@ -85,14 +85,14 @@ public class SpringBatchListener implements JobExecutionListener {
                  CipherOutputStream cipherOutputStream = new CipherOutputStream(outputStream, cipher);
             ) {
                 byte[] buffer = new byte[1024];
-                int bytesRead;
-                while ((bytesRead = inputStream.read(buffer)) >= 0) {
+                int bytesRead = inputStream.read(buffer);
+                while (bytesRead >= 0) {
                     cipherOutputStream.write(buffer, 0, bytesRead);
+                    bytesRead = inputStream.read(buffer);
                 }
             }
         } catch (Exception e) {
-            log.info("Error encrypting/decrypting file: " + e.getMessage());
-            e.printStackTrace();
+            log.error("Error encrypting/decrypting file:", e);
         }
     }
 
@@ -106,13 +106,13 @@ public class SpringBatchListener implements JobExecutionListener {
             String checksum = calculateMD5Checksum(filePath);
             int recordCount = getRecordCount(filePath);
             String fileName = getFileName(filePath);
-            String qcFileName = fileName.substring(0, fileName.indexOf(".")) + "-qc.txt";
+            String qcFileName = fileName.substring(0, fileName.indexOf('.')) + "-qc.txt";
 
             writeQCFile(qcFileName, fileName, recordCount, checksum);
             azureADLSPush.pushToADLS();
             log.info("QC file generated: " + qcFileName);
         } catch (IOException | NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            log.error("Error while generating QC file", e);
         }
     }
 
@@ -129,9 +129,10 @@ public class SpringBatchListener implements JobExecutionListener {
         MessageDigest md = MessageDigest.getInstance("MD5");
         try (InputStream is = new FileInputStream(filePath)) {
             byte[] buffer = new byte[8192];
-            int read;
-            while ((read = is.read(buffer)) > 0) {
+            int read = is.read(buffer);
+            while (read > 0) {
                 md.update(buffer, 0, read);
+                read = is.read(buffer);
             }
         }
         byte[] digest = md.digest();

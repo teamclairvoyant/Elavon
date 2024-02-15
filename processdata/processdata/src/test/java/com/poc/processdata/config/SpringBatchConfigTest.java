@@ -2,6 +2,7 @@ package com.poc.processdata.config;
 
 import com.poc.processdata.ProcessDataApplication;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.*;
 import org.springframework.batch.core.ExitStatus;
 import org.springframework.batch.core.JobExecution;
@@ -22,7 +23,8 @@ import java.util.stream.Stream;
 
 @SpringBootTest
 @SpringJUnitConfig({ProcessDataApplication.class, SpringBatchConfig.class})
-class SpringBatchConfigTests {
+@Slf4j
+class SpringBatchConfigTest {
 
     private final Path INPUT_DIRECTORY = Path.of("test/java/resources/");
 
@@ -45,20 +47,20 @@ class SpringBatchConfigTests {
         try (Stream<Path> filesTree = Files.walk(INPUT_DIRECTORY)) {
             filesTree.filter(Files::isRegularFile)
                     .map(Path::toFile)
-                    .peek(fileToDelete -> System.out.println("deleting the file: " + fileToDelete.getName()))
+                    .peek(fileToDelete -> log.info("deleting the file: " + fileToDelete.getName()))
                     .forEach(File::delete);
         }
     }
 
     @Test
-    @DisplayName("GIVEN a directory with valid files WHEN jobLaunched THEN records persisted into DB and the input file is moved to processed directory")
+    @DisplayName("Test case for complete batch job")
     @SneakyThrows
     void shouldReadFromFileAndPersistIntoDataBaseAndMoveToProcessedDirectory() {
         //GIVEN
         Path completeFilePath = Path.of(INPUT_DIRECTORY + File.separator + "order.csv");
         Path inputFile = Files.createFile(completeFilePath);
 
-        Files.writeString(inputFile, SpringBatchConfigTestsUtils.supplyValidContent());
+        Files.writeString(inputFile, SpringBatchConfigTestUtil.supplyValidContent());
 
         //WHEN
         var jobParameters = new JobParametersBuilder()

@@ -1,6 +1,7 @@
 package com.poc.processdata.controller;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/jobs")
 @AllArgsConstructor
+@Slf4j
 public class JobController {
 
     private final JobLauncher jobLauncher;
@@ -29,7 +31,7 @@ public class JobController {
             jobLauncher.run(job, jobParameters);
         } catch (JobExecutionAlreadyRunningException | JobRestartException | JobInstanceAlreadyCompleteException |
                  JobParametersInvalidException e) {
-            e.printStackTrace();
+            log.error("Error",e);
         }
     }
 }

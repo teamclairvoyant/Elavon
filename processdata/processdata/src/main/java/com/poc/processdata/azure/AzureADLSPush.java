@@ -3,6 +3,7 @@ package com.poc.processdata.azure;
 import com.azure.storage.file.datalake.DataLakeFileClient;
 import com.azure.storage.file.datalake.DataLakeFileSystemClient;
 import com.azure.storage.file.datalake.DataLakeServiceClientBuilder;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -11,6 +12,7 @@ import java.io.File;
 
 @Slf4j
 @Component
+@NoArgsConstructor
 public class AzureADLSPush {
 
     @Value("${spring.azure.adls.containerName}")

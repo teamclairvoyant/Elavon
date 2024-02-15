@@ -133,7 +133,7 @@ public class SpringBatchConfig {
         String[] uuidCols = uuidColumns.split(",");
         StringBuilder sb = new StringBuilder();
         for (String uuIdCol : uuidCols) {
-            sb.append(response.get(uuIdCol) + "_");
+            sb.append(response.get(uuIdCol)).append("_");
         }
         sb.append(new Timestamp(System.currentTimeMillis()));
         response.put("record_id", sb.toString());
@@ -167,7 +167,7 @@ public class SpringBatchConfig {
     public ItemWriter<String> itemWriter() {
         return items -> items.forEach(item ->
         {
-            File file = new File(resultPath + FILE_DELIMITER + filePath.substring(filePath.lastIndexOf("\\")));
+            File file = new File(resultPath + FILE_DELIMITER + filePath.substring(filePath.lastIndexOf('\\')));
             JSONObject jsonObject = new JSONObject(item);
             String columns = headerColumns;
             String[] columnsArr = columns.split(",");
