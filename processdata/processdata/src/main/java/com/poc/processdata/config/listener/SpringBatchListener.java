@@ -1,6 +1,7 @@
 package com.poc.processdata.config.listener;
 
 import com.poc.processdata.AzureADLSPush;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +16,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
-
+@Slf4j
 public class SpringBatchListener implements JobExecutionListener {
 
     @Value("${spring.batch.file.result}")
@@ -44,8 +45,8 @@ public class SpringBatchListener implements JobExecutionListener {
     @Override
     public void beforeJob(JobExecution jobExecution) {
          startTime = System.currentTimeMillis();
-//        long timesec = startTime/1000;
-        System.out.println("Job started at: " + startTime);
+        long timesec = startTime;
+        log.info("Job started at: " + timesec);
         decrypt();
     }
 
@@ -67,7 +68,7 @@ public class SpringBatchListener implements JobExecutionListener {
                 }
             }
         } catch (Exception e) {
-            System.err.println("Error encrypting/decrypting file: " + e.getMessage());
+            log.info("Error encrypting/decrypting file: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -84,7 +85,7 @@ public class SpringBatchListener implements JobExecutionListener {
                 // Write to QC file
             writeQCFile(qcFileName, fileName, recordCount, checksum);
             azureADLSPush.pushToADLS();
-            System.out.println("QC file generated: " + qcFileName);
+            log.info("QC file generated: " + qcFileName);
         } catch (IOException | NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
@@ -127,10 +128,10 @@ public class SpringBatchListener implements JobExecutionListener {
             writer.write(fileName + "|" + recordCount + "|" + checksum);
         }
         long endTime = System.currentTimeMillis();
-        System.out.println("Job finished at: " + endTime);
+        log.info("Job finished at: " + endTime);
 
         long durationSeconds = (endTime - startTime) / 1000;
-        System.out.println("Job duration: " + durationSeconds + " seconds");
+        log.info("Job duration: " + durationSeconds + " seconds");
     }
 
 
