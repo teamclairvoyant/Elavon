@@ -1,6 +1,6 @@
 package com.poc.processdata.config;
 
-public class SpringBatchConfigUtils {
+public class SpringBatchConfigTestsUtils {
     public static CharSequence supplyValidContent() {
         return "��\b{��\u001D\u0019�4UK'�@*z�\uF6BD-�]\u0006\u000F��ק��HS�ꖟ0��\u000EW{\u0017\u001A}3\t�dQ\u0016�3t���ʇ1�\u0011�Ł6\u001A\n" +
                 "\u0014^pe{\u0007)���s\u0018����|�\u0012[:چeԊ��]�n\u000B�t�:���\u001Fq�����*��I�z%�\\\f&&V� �nH6\u0006:�lI\u0011�}�=\u0006m���S��\u0003ȍ�ߋ��)�Q&J�6��}�B3���\u0006G�O���\n" +

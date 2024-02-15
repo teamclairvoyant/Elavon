@@ -58,7 +58,7 @@ class SpringBatchConfigTests {
         Path shouldCompleteFilePath = Path.of(INPUT_DIRECTORY + File.separator + "order.csv");
         Path inputFile = Files.createFile(shouldCompleteFilePath);
 
-        Files.writeString(inputFile, SpringBatchConfigUtils.supplyValidContent());
+        Files.writeString(inputFile, SpringBatchConfigTestsUtils.supplyValidContent());
 
         //WHEN
         var jobParameters = new JobParametersBuilder()

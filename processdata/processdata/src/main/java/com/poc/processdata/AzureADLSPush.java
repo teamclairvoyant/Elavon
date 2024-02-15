@@ -3,11 +3,12 @@ package com.poc.processdata;
 import com.azure.storage.file.datalake.DataLakeFileClient;
 import com.azure.storage.file.datalake.DataLakeFileSystemClient;
 import com.azure.storage.file.datalake.DataLakeServiceClientBuilder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
-
+@Slf4j
 @Component
 public class AzureADLSPush {
 
@@ -39,12 +40,12 @@ public class AzureADLSPush {
                 String destinationFilePath = adlsFilePath + file.getName();
                 DataLakeFileClient fileClient = fileSystemClient.getFileClient(destinationFilePath);
                 fileClient.uploadFromFile(file.getPath(), true);
-                System.out.println("File uploaded successfully: " + file.getName());
+                log.info("File uploaded successfully: " + file.getName());
             }
         } else {
-            System.out.println("No files found in the local folder.");
+            log.info("No files found in the local folder.");
         }
-        System.out.println("File uploaded successfully to ADLS Gen2.");
+        log.info("File uploaded successfully to ADLS Gen2.");
     }
 
 }

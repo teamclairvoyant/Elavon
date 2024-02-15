@@ -1,5 +1,5 @@
 package com.poc.processdata.config;
-
+import lombok.extern.slf4j.Slf4j;
 import com.opencsv.CSVWriter;
 import com.poc.processdata.config.listener.SpringBatchListener;
 import org.json.JSONObject;
@@ -29,6 +29,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.sql.Timestamp;
 
+@Slf4j
 @Configuration
 public class SpringBatchConfig {
 
@@ -63,6 +64,7 @@ public class SpringBatchConfig {
     @Bean
     @StepScope
     public FlatFileItemReader<String> flatFileItemReader() {
+        log.info("reading files from reader");
         FlatFileItemReader<String> flatFileItemReader = new FlatFileItemReader<>();
         FileSystemResource resource = new FileSystemResource(decryptedFilePath);
         flatFileItemReader.setResource(resource);
@@ -84,12 +86,12 @@ public class SpringBatchConfig {
     @StepScope
     public ItemProcessor<String, String> itemProcessor() {
         return item -> {
-
+            log.info("processing data");
             System.out.println(item);
 
             JSONObject jsonObject = convertToJSON(item);
 
-            System.out.println(jsonObject);
+            log.info("get json objects",jsonObject);
 
             tokenizeData(jsonObject);
 
@@ -185,6 +187,5 @@ public class SpringBatchConfig {
                 .start(step1())
                 .build();
     }
-
 
 }
