@@ -5,13 +5,12 @@ import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Arrays;
 
-public class fileEncHelp {
+public class FileEncHelp {
 
     private static final String ENCRYPTION_ALGORITHM = "AES";
-    private static final String SECRET_KEY = "MySecretKey12345"; // Replace with your secret key
+    private static final String SECRET_KEY = "MySecretKey12345";
 
     public static void main(String[] args) {
         String inputDirectory = "C:\\Users\\Kamal199261\\Documents\\csv_files";
