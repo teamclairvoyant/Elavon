@@ -54,8 +54,7 @@ public class CryptoServiceImpl implements CryptoService {
             SecretKey originalKey = new SecretKeySpec(Arrays.copyOf(decodedKey, 16), "AES");
             cipher.init(Cipher.DECRYPT_MODE, originalKey);
             byte[] cipherText = cipher.doFinal(Base64.getDecoder().decode(value));
-//            System.out.println("secKey: " + secretKey);
-//            System.out.println("originalKey: " + originalKey);
+
             decryptedData = new String(cipherText);
 //            System.out.println("DecryptedData: " + decryptedData);
             return decryptedData;
