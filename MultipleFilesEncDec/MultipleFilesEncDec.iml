@@ -1,13 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module version="4">
-  <component name="FacetManager">
-    <facet type="azure" name="Azure">
-      <configuration>
-        <option name="dotAzurePath" value="C:\Users\Kamal199261\MultipleFilesEncDec\.azure" />
-      </configuration>
-    </facet>
-  </component>
   <component name="SonarLintModuleSettings">
-    <option name="uniqueId" value="46763035-f8a6-46fe-8fd6-75aad9ad6bed" />
+    <option name="uniqueId" value="fcbc13da-f634-4ab8-a1fa-efed83b90bdc" />
   </component>
 </module>
