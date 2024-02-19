@@ -15,12 +15,13 @@ public class FileEncHelp {
     public static void main(String[] args) {
         String inputDirectory = "C:\\Users\\Kamal199261\\Documents\\csv_files";
         String outputDirectory = "C:\\Users\\Kamal199261\\Documents\\csv_enc_mul_files";
+        String decDirectory = "C:\\Users\\Kamal199261\\Documents\\csv_mul_dec_files";
 
         // Encrypt files
         encryptFiles(inputDirectory, outputDirectory);
 
         // Decrypt files
-        decryptFiles(outputDirectory);
+        decryptFiles(outputDirectory,decDirectory);
     }
 
     private static void encryptFiles(String inputDirectory, String outputDirectory) {
@@ -39,13 +40,14 @@ public class FileEncHelp {
         }
     }
 
-    private static void decryptFiles(String outputDirectory) {
+    private static void decryptFiles(String outputDirectory, String decDirectory) {
         try {
             File[] files = new File(outputDirectory).listFiles();
             if (files != null) {
                 for (File file : files) {
                     byte[] fileContent = Files.readAllBytes(file.toPath());
                     byte[] decryptedContent = decrypt(fileContent);
+                    saveToFile(decryptedContent, decDirectory + File.separator + file.getName());
                     String decryptedString = new String(decryptedContent, StandardCharsets.UTF_8);
                     System.out.println("Decrypted content as String: " + "\n" + decryptedString);
                     System.out.println("Decrypted content as String array: " + "\n" + Arrays.toString(decryptedString.split("\\s+")));
