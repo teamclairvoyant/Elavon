@@ -30,8 +30,8 @@ public class SpringBatchListener implements JobExecutionListener {
     /*
     decrypted file path
      */
-    @Value("${spring.batch.file.decryptedFilePath}")
-    private String decryptedFilePath;
+    @Value("${spring.batch.file.decryptedDirectoryPath}")
+    private String decryptedDirectoryPath;
     @Value("${spring.batch.file.ALGORITHM}")
     private String algorithm;
     @Value("${spring.batch.file.TRANSFORMATION}")
@@ -79,7 +79,7 @@ public class SpringBatchListener implements JobExecutionListener {
             Cipher cipher = Cipher.getInstance(transformation);
             cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
             File inputFile = new File(filePath);
-            File outputFile = new File(decryptedFilePath);
+            File outputFile = new File(decryptedDirectoryPath + File.separator + inputFile.getName());
             try (InputStream inputStream = new FileInputStream(inputFile);
                  OutputStream outputStream = new FileOutputStream(outputFile);
                  CipherOutputStream cipherOutputStream = new CipherOutputStream(outputStream, cipher);
@@ -101,19 +101,19 @@ public class SpringBatchListener implements JobExecutionListener {
      */
     @Override
     public void afterJob(JobExecution jobExecution) {
-        try {
-
-            String checksum = calculateMD5Checksum(filePath);
-            int recordCount = getRecordCount(filePath);
-            String fileName = getFileName(filePath);
-            String qcFileName = fileName.substring(0, fileName.indexOf('.')) + "-qc.txt";
-
-            writeQCFile(qcFileName, fileName, recordCount, checksum);
-            azureADLSPush.pushToADLS();
-            log.info("QC file generated: " + qcFileName);
-        } catch (IOException | NoSuchAlgorithmException e) {
-            log.error("Error while generating QC file", e);
-        }
+//        try {
+//
+//            String checksum = calculateMD5Checksum(filePath);
+//            int recordCount = getRecordCount(filePath);
+//            String fileName = getFileName(filePath);
+//            String qcFileName = fileName.substring(0, fileName.indexOf('.')) + "-qc.txt";
+//
+//            writeQCFile(qcFileName, fileName, recordCount, checksum);
+//            azureADLSPush.pushToADLS();
+//            log.info("QC file generated: " + qcFileName);
+//        } catch (IOException | NoSuchAlgorithmException e) {
+//            log.error("Error while generating QC file", e);
+//        }
     }
 
     /*

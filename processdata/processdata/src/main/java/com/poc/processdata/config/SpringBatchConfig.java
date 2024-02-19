@@ -1,12 +1,13 @@
 package com.poc.processdata.config;
 
 import com.opencsv.CSVWriter;
+import com.poc.processdata.config.linemapper.CustomFileLineMapper;
+import com.poc.processdata.config.linemapper.FileLine;
 import com.poc.processdata.config.listener.SpringBatchListener;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.batch.core.Job;
-import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
@@ -15,11 +16,13 @@ import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.mapping.PassThroughLineMapper;
+import org.springframework.batch.item.file.MultiResourceItemReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -46,6 +49,9 @@ public class SpringBatchConfig {
     @Value("${spring.batch.file.decryptedFilePath}")
     private String decryptedFilePath;
 
+//    @Value("classpath:/decrypted/*.csv")
+//    private Resource[] inputFiles;
+
     @Value("${spring.batch.file.headerColumns}")
     private String headerColumns;
 
@@ -58,6 +64,7 @@ public class SpringBatchConfig {
     @Value("${spring.batch.data.fieldsToBeTokenized}")
     private String fieldsToBeTokenized;
 
+
     private final StepBuilderFactory stepBuilderFactory;
 
     private final JobBuilderFactory jobBuilderFactory;
@@ -66,28 +73,32 @@ public class SpringBatchConfig {
 
     private final SpringBatchListener springBatchListener;
 
+    @Bean
+    @StepScope
+    public MultiResourceItemReader<FileLine> multiResourceItemReader() {
+        MultiResourceItemReader<FileLine> resourceItemReader = new MultiResourceItemReader<>();
+        ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
+        try {
+            resourceItemReader.setResources(resourcePatternResolver.getResources(decryptedFilePath));
+        } catch (IOException e) {
+            log.error("error", e);
+        }
+        resourceItemReader.setDelegate(flatFileItemReader());
+        return resourceItemReader;
+    }
+
+
     /*
     This will create a beam of Item reader and item reader reads data from source
     Created FlatFileItemReader instance and configured it
      */
     @Bean
     @StepScope
-    public FlatFileItemReader<String> flatFileItemReader() {
+    public FlatFileItemReader<FileLine> flatFileItemReader() {
         log.info("reading files from reader");
-        FlatFileItemReader<String> flatFileItemReader = new FlatFileItemReader<>();
-        FileSystemResource resource = new FileSystemResource(decryptedFilePath);
-        flatFileItemReader.setResource(resource);
-        flatFileItemReader.setName("CSV-Reader");
-        flatFileItemReader.setLinesToSkip(1);
-        flatFileItemReader.setLineMapper(new PassThroughLineMapper());
-        File file = new File(resultPath + FILE_DELIMITER + resource.getFilename());
-        try (FileWriter outputFile = new FileWriter(file); CSVWriter writer = new CSVWriter(outputFile)) {
-            String[] header = headerColumns.split(",");
-            writer.writeNext(header);
-        } catch (IOException e) {
-            log.error("error while writing headers", e);
-        }
-
+        FlatFileItemReader<FileLine> flatFileItemReader = new FlatFileItemReader<>();
+        CustomFileLineMapper lineMapper = new CustomFileLineMapper();
+        flatFileItemReader.setLineMapper(lineMapper);
         return flatFileItemReader;
     }
 
@@ -96,18 +107,19 @@ public class SpringBatchConfig {
      */
     @Bean
     @StepScope
-    public ItemProcessor<String, String> itemProcessor() {
+    public ItemProcessor<FileLine, FileLine> itemProcessor() {
         return item -> {
             log.info("processing data");
-            log.info(item);
-
-            JSONObject jsonObject = convertToJSON(item);
+            log.info(item.getLineData());
+            JSONObject jsonObject = convertToJSON(item.getLineData());
 
             log.info("get json objects", jsonObject);
 
             tokenizeData(jsonObject);
 
-            return addRecordId(jsonObject);
+            String recordIdAddedData = addRecordId(jsonObject);
+            item.setLineData(recordIdAddedData);
+            return item;
         };
     }
 
@@ -164,11 +176,14 @@ public class SpringBatchConfig {
      */
     @Bean
     @StepScope
-    public ItemWriter<String> itemWriter() {
+    public ItemWriter<FileLine> itemWriter() {
         return items -> items.forEach(item ->
         {
-            File file = new File(resultPath + FILE_DELIMITER + filePath.substring(filePath.lastIndexOf('\\')));
-            JSONObject jsonObject = new JSONObject(item);
+            log.info(item.getLineData(), "-------------");
+            String filename = item.getResource().getFilename();
+            log.info(filename, "--------------------");
+            File file = new File(resultPath + FILE_DELIMITER + filename);
+            JSONObject jsonObject = new JSONObject(item.getLineData());
             String columns = headerColumns;
             String[] columnsArr = columns.split(",");
             String[] data = new String[columnsArr.length + 1];
@@ -191,8 +206,8 @@ public class SpringBatchConfig {
     @Bean
     public Step step1() {
         return stepBuilderFactory.get("step1")
-                .<String, String>chunk(10)
-                .reader(flatFileItemReader())
+                .<FileLine, FileLine>chunk(10)
+                .reader(multiResourceItemReader())
                 .processor(itemProcessor())
                 .writer(itemWriter())
                 .build();
