@@ -3,11 +3,11 @@
   <component name="FacetManager">
     <facet type="azure" name="Azure">
       <configuration>
-        <option name="dotAzurePath" value="C:\springbatch\Spring-Pyspark-Framework\MultipleFilesEncDec\.azure" />
+        <option name="dotAzurePath" value="C:\Users\Kamal199261\MultipleFilesEncDec\.azure" />
       </configuration>
     </facet>
   </component>
   <component name="SonarLintModuleSettings">
-    <option name="uniqueId" value="df37794f-9764-4453-a2b9-1949b80e136c" />
+    <option name="uniqueId" value="46763035-f8a6-46fe-8fd6-75aad9ad6bed" />
   </component>
 </module>
