@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
@@ -41,6 +43,9 @@ public class SpringBatchListener implements JobExecutionListener {
      */
     private final AzureADLSPush azureADLSPush;
 
+    @Value("${spring.batch.file.decryptedFilePath}")
+    private String decryptedFilePath;
+
     private long startTime;
 
     /**
@@ -51,9 +56,9 @@ public class SpringBatchListener implements JobExecutionListener {
      * @throws IOException If an I/O error occurs while reading the file.
      */
 
-    public static int getRecordCount(String filePath) throws IOException {
+    public static int getRecordCount(File file) throws IOException {
         int count = 0;
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
             while (null != reader.readLine()) {
                 count++;
             }
@@ -78,8 +83,6 @@ public class SpringBatchListener implements JobExecutionListener {
             SecretKey secretKeySpec = new SecretKeySpec(this.secretKey.getBytes(), algorithm);
             Cipher cipher = Cipher.getInstance(transformation);
             cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
-//            File inputFile = new File(filePath);
-//            File outputFile = new File(decryptedDirectoryPath + File.separator + inputFile.getName());
             File directory = new File(filePath);
             File[] files = directory.listFiles();
             log.info("files reading");
@@ -88,9 +91,6 @@ public class SpringBatchListener implements JobExecutionListener {
                 for (File inputFile : files) {
                     File outputFile = new File(decryptedDirectoryPath + File.separator + inputFile.getName());
                     // Perform operations with inputFile and outputFile as needed
-                    System.out.println("Input File: " + inputFile.getAbsolutePath());
-                    System.out.println("Output File: " + outputFile.getAbsolutePath());
-
                     try (InputStream inputStream = new FileInputStream(inputFile);
                          OutputStream outputStream = new FileOutputStream(outputFile);
                          CipherOutputStream cipherOutputStream = new CipherOutputStream(outputStream, cipher);
@@ -117,14 +117,20 @@ public class SpringBatchListener implements JobExecutionListener {
     @Override
     public void afterJob(JobExecution jobExecution) {
         try {
-            String checksum = calculateMD5Checksum(filePath);
-            int recordCount = getRecordCount(filePath);
-            String fileName = getFileName(filePath);
-            String qcFileName = fileName.substring(0, fileName.indexOf('.')) + "-qc.txt";
 
-            writeQCFile(qcFileName, fileName, recordCount, checksum);
+            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+            Resource[] resources = resolver.getResources(decryptedFilePath);
+            for (Resource resource : resources) {
+                File file = resource.getFile();
+                String checksum = calculateMD5Checksum(file);
+                int recordCount = getRecordCount(file);
+                String fileName = file.getName();
+                String qcFileName = fileName.substring(0, fileName.indexOf('.')) + "-qc.txt";
+
+                writeQCFile(qcFileName, fileName, recordCount, checksum);
+                log.info("QC file generated: " + qcFileName);
+            }
             azureADLSPush.pushToADLS();
-            log.info("QC file generated: " + qcFileName);
         } catch (IOException | NoSuchAlgorithmException e) {
             log.error("Error while generating QC file", e);
         }
@@ -139,9 +145,9 @@ public class SpringBatchListener implements JobExecutionListener {
      * @throws IOException              If an I/O error occurs while reading the file.
      * @throws NoSuchAlgorithmException If the MD5 algorithm is not available.
      */
-    public String calculateMD5Checksum(String filePath) throws IOException, NoSuchAlgorithmException {
+    public String calculateMD5Checksum(File file) throws IOException, NoSuchAlgorithmException {
         MessageDigest md = MessageDigest.getInstance("MD5");
-        try (InputStream is = new FileInputStream(filePath)) {
+        try (InputStream is = new FileInputStream(file)) {
             byte[] buffer = new byte[8192];
             int read = is.read(buffer);
             while (read > 0) {
@@ -155,11 +161,6 @@ public class SpringBatchListener implements JobExecutionListener {
             sb.append(String.format("%02x", b & 0xff));
         }
         return sb.toString();
-    }
-
-    public String getFileName(String filePath) {
-        File file = new File(filePath);
-        return file.getName();
     }
 
     /**

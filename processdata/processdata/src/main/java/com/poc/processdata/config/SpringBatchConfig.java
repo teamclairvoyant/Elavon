@@ -77,20 +77,6 @@ public class SpringBatchConfig {
 
     private final SpringBatchListener springBatchListener;
 
-//    @Bean
-//    @StepScope
-//    public MultiResourceItemReader<FileLine> multiResourceItemReader() {
-//        MultiResourceItemReader<FileLine> resourceItemReader = new MultiResourceItemReader<>();
-//        ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
-//        try {
-//            resourceItemReader.setResources(resourcePatternResolver.getResources(decryptedFilePath));
-//        } catch (IOException e) {
-//            log.error("error", e);
-//        }
-//        resourceItemReader.setDelegate(flatFileItemReader());
-//        return resourceItemReader;
-//    }
-
 
     /*
     This will create a beam of Item reader and item reader reads data from source
@@ -101,7 +87,7 @@ public class SpringBatchConfig {
     public FlatFileItemReader<FileLine> flatFileItemReader(@Value("#{stepExecutionContext[fileName]}") String fileName) {
         log.info("reading files from reader");
         FlatFileItemReader<FileLine> flatFileItemReader = new FlatFileItemReader<>();
-        System.out.println("FILENAME===========" + fileName);
+        log.info("FILENAME===========" + fileName);
         FileSystemResource resource = new FileSystemResource(fileName.substring(5));
         flatFileItemReader.setResource(resource);
         CustomFileLineMapper lineMapper = new CustomFileLineMapper();
@@ -190,7 +176,7 @@ public class SpringBatchConfig {
         {
             log.info(item.getLineData(), "-------------");
             String filename = item.getResource().getFilename();
-            log.info(filename+"---------------");
+            log.info(filename + "---------------");
             File file = new File(resultPath + FILE_DELIMITER + filename);
             JSONObject jsonObject = new JSONObject(item.getLineData());
             String columns = headerColumns;
@@ -227,7 +213,7 @@ public class SpringBatchConfig {
         try {
             partitioner.setResources(resolver.getResources(decryptedFilePath));
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            log.error("error in createPartitioner()", e);
         }
         return partitioner;
 
@@ -252,8 +238,6 @@ public class SpringBatchConfig {
         executor.setQueueCapacity(20);
         executor.setCorePoolSize(2);
         executor.afterPropertiesSet();
-        executor.setThreadNamePrefix("GithubLookup-");
-        executor.initialize();
 
         return executor;
     }
