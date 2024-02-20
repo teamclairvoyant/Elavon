@@ -23,9 +23,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.io.support.ResourcePatternResolver;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
 
 import java.io.File;
@@ -99,6 +101,11 @@ public class SpringBatchConfig {
         FlatFileItemReader<FileLine> flatFileItemReader = new FlatFileItemReader<>();
         CustomFileLineMapper lineMapper = new CustomFileLineMapper();
         flatFileItemReader.setLineMapper(lineMapper);
+        try {
+            flatFileItemReader.read();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         flatFileItemReader.setLinesToSkip(1);
         return flatFileItemReader;
     }
@@ -210,10 +217,20 @@ public class SpringBatchConfig {
                 .<FileLine, FileLine>chunk(10)
                 .reader(multiResourceItemReader())
                 .processor(itemProcessor())
-                .writer(itemWriter())
+                .writer(itemWriter()).taskExecutor(taskExecutor()).throttleLimit(10)
                 .build();
     }
 
+    private TaskExecutor taskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(10);
+        executor.setMaxPoolSize(12);
+        executor.setQueueCapacity(1000);
+        executor.setThreadNamePrefix("GithubLookup-");
+        executor.initialize();
+
+        return executor;
+    }
     /*
     Create and return a new instance of the SpringBatchListener as a JobExecutionListener
      */
