@@ -29,9 +29,7 @@ public class SpringBatchListener implements JobExecutionListener {
     private String resultPath;
     @Value("${spring.batch.file.filePath}")
     private String filePath;
-    /*
-    decrypted file path
-     */
+
     @Value("${spring.batch.file.decryptedDirectoryPath}")
     private String decryptedDirectoryPath;
     @Value("${spring.batch.file.ALGORITHM}")
