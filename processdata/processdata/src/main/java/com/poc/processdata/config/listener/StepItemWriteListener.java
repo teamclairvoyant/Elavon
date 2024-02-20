@@ -2,6 +2,7 @@ package com.poc.processdata.config.listener;
 
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
+import org.springframework.batch.core.ItemWriteListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -12,7 +13,7 @@ import java.util.Map;
 
 @Component
 @Slf4j
-public class ItemWriteListener implements org.springframework.batch.core.ItemWriteListener<JSONObject> {
+public class StepItemWriteListener implements ItemWriteListener<JSONObject> {
 
     @Value("${spring.batch.data.fieldsToBeTokenized}")
     private List<String> fieldsToBeTokenized;

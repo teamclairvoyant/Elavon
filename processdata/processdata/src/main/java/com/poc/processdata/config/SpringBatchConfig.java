@@ -1,7 +1,7 @@
 package com.poc.processdata.config;
 
 import com.opencsv.CSVWriter;
-import com.poc.processdata.config.listener.ItemWriteListener;
+import com.poc.processdata.config.listener.StepItemWriteListener;
 import com.poc.processdata.config.listener.SpringBatchListener;
 import com.poc.processdata.helper.BatchHelper;
 import io.micrometer.core.lang.Nullable;
@@ -61,7 +61,7 @@ public class SpringBatchConfig {
 
     private final BatchHelper batchHelper;
 
-    private final ItemWriteListener itemWriteListener;
+    private final StepItemWriteListener stepItemWriteListener;
 
     /*
     This will create a beam of Item reader and item reader reads data from source
@@ -161,7 +161,7 @@ public class SpringBatchConfig {
     public Step step1() {
         return stepBuilderFactory.get("step1")
                 .<String, JSONObject>chunk(10)
-                .listener(itemWriteListener)
+                .listener(stepItemWriteListener)
                 .reader(flatFileItemReader(null))
                 .processor(itemProcessor())
                 .writer(itemWriter(null))
