@@ -9,20 +9,21 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.partition.support.MultiResourcePartitioner;
+import org.springframework.batch.core.partition.support.Partitioner;
 import org.springframework.batch.item.ItemProcessor;
 import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
-import org.springframework.batch.item.file.MultiResourceItemReader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.Resource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -40,6 +41,7 @@ Configuration class for Spring Batch, defining properties, and writing necessary
  */
 @Slf4j
 @Configuration
+@EnableBatchProcessing
 @RequiredArgsConstructor
 public class SpringBatchConfig {
 
@@ -75,19 +77,19 @@ public class SpringBatchConfig {
 
     private final SpringBatchListener springBatchListener;
 
-    @Bean
-    @StepScope
-    public MultiResourceItemReader<FileLine> multiResourceItemReader() {
-        MultiResourceItemReader<FileLine> resourceItemReader = new MultiResourceItemReader<>();
-        ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
-        try {
-            resourceItemReader.setResources(resourcePatternResolver.getResources(decryptedFilePath));
-        } catch (IOException e) {
-            log.error("error", e);
-        }
-        resourceItemReader.setDelegate(flatFileItemReader());
-        return resourceItemReader;
-    }
+//    @Bean
+//    @StepScope
+//    public MultiResourceItemReader<FileLine> multiResourceItemReader() {
+//        MultiResourceItemReader<FileLine> resourceItemReader = new MultiResourceItemReader<>();
+//        ResourcePatternResolver resourcePatternResolver = new PathMatchingResourcePatternResolver();
+//        try {
+//            resourceItemReader.setResources(resourcePatternResolver.getResources(decryptedFilePath));
+//        } catch (IOException e) {
+//            log.error("error", e);
+//        }
+//        resourceItemReader.setDelegate(flatFileItemReader());
+//        return resourceItemReader;
+//    }
 
 
     /*
@@ -96,16 +98,15 @@ public class SpringBatchConfig {
      */
     @Bean
     @StepScope
-    public FlatFileItemReader<FileLine> flatFileItemReader() {
+    public FlatFileItemReader<FileLine> flatFileItemReader(@Value("#{stepExecutionContext[fileName]}") String fileName) {
         log.info("reading files from reader");
         FlatFileItemReader<FileLine> flatFileItemReader = new FlatFileItemReader<>();
+        System.out.println("FILENAME===========" + fileName);
+        FileSystemResource resource = new FileSystemResource(fileName.substring(5));
+        flatFileItemReader.setResource(resource);
         CustomFileLineMapper lineMapper = new CustomFileLineMapper();
+        lineMapper.setResource(resource);
         flatFileItemReader.setLineMapper(lineMapper);
-        try {
-            flatFileItemReader.read();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
         flatFileItemReader.setLinesToSkip(1);
         return flatFileItemReader;
     }
@@ -189,7 +190,7 @@ public class SpringBatchConfig {
         {
             log.info(item.getLineData(), "-------------");
             String filename = item.getResource().getFilename();
-            log.info(filename, "--------------------");
+            log.info(filename+"---------------");
             File file = new File(resultPath + FILE_DELIMITER + filename);
             JSONObject jsonObject = new JSONObject(item.getLineData());
             String columns = headerColumns;
@@ -208,6 +209,30 @@ public class SpringBatchConfig {
         });
     }
 
+
+    @Bean
+    public Step cerateMasterStep() {
+        return stepBuilderFactory.get("MasterStep")
+                .partitioner("partition", createPartitioner())
+                .step(step1())
+                .gridSize(4)
+                .taskExecutor(taskExecutor())
+                .build();
+    }
+
+    @Bean
+    public Partitioner createPartitioner() {
+        MultiResourcePartitioner partitioner = new MultiResourcePartitioner();
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        try {
+            partitioner.setResources(resolver.getResources(decryptedFilePath));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return partitioner;
+
+    }
+
     /*
     Configure and build a Step named "step1" to read, process, and write data in chunks
      */
@@ -215,7 +240,7 @@ public class SpringBatchConfig {
     public Step step1() {
         return stepBuilderFactory.get("step1")
                 .<FileLine, FileLine>chunk(10)
-                .reader(multiResourceItemReader())
+                .reader(flatFileItemReader(null))
                 .processor(itemProcessor())
                 .writer(itemWriter()).taskExecutor(taskExecutor()).throttleLimit(10)
                 .build();
@@ -223,9 +248,10 @@ public class SpringBatchConfig {
 
     private TaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(10);
-        executor.setMaxPoolSize(12);
-        executor.setQueueCapacity(1000);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(20);
+        executor.setCorePoolSize(2);
+        executor.afterPropertiesSet();
         executor.setThreadNamePrefix("GithubLookup-");
         executor.initialize();
 
@@ -242,7 +268,8 @@ public class SpringBatchConfig {
     public Job job() {
         return jobBuilderFactory.get("job").listener(springBatchListener)
                 .incrementer(new RunIdIncrementer())
-                .start(step1())
+                .flow(cerateMasterStep())
+                .end()
                 .build();
     }
 
