@@ -101,19 +101,19 @@ public class SpringBatchListener implements JobExecutionListener {
      */
     @Override
     public void afterJob(JobExecution jobExecution) {
-//        try {
-//
-//            String checksum = calculateMD5Checksum(filePath);
-//            int recordCount = getRecordCount(filePath);
-//            String fileName = getFileName(filePath);
-//            String qcFileName = fileName.substring(0, fileName.indexOf('.')) + "-qc.txt";
-//
-//            writeQCFile(qcFileName, fileName, recordCount, checksum);
-//            azureADLSPush.pushToADLS();
-//            log.info("QC file generated: " + qcFileName);
-//        } catch (IOException | NoSuchAlgorithmException e) {
-//            log.error("Error while generating QC file", e);
-//        }
+        try {
+
+            String checksum = calculateMD5Checksum(filePath);
+            int recordCount = getRecordCount(filePath);
+            String fileName = getFileName(filePath);
+            String qcFileName = fileName.substring(0, fileName.indexOf('.')) + "-qc.txt";
+
+            writeQCFile(qcFileName, fileName, recordCount, checksum);
+            azureADLSPush.pushToADLS();
+            log.info("QC file generated: " + qcFileName);
+        } catch (IOException | NoSuchAlgorithmException e) {
+            log.error("Error while generating QC file", e);
+        }
     }
 
     /*

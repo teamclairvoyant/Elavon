@@ -99,6 +99,7 @@ public class SpringBatchConfig {
         FlatFileItemReader<FileLine> flatFileItemReader = new FlatFileItemReader<>();
         CustomFileLineMapper lineMapper = new CustomFileLineMapper();
         flatFileItemReader.setLineMapper(lineMapper);
+        flatFileItemReader.setLinesToSkip(1);
         return flatFileItemReader;
     }
 
