@@ -78,22 +78,37 @@ public class SpringBatchListener implements JobExecutionListener {
             SecretKey secretKeySpec = new SecretKeySpec(this.secretKey.getBytes(), algorithm);
             Cipher cipher = Cipher.getInstance(transformation);
             cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
-            File inputFile = new File(filePath);
-            File outputFile = new File(decryptedDirectoryPath + File.separator + inputFile.getName());
-            try (InputStream inputStream = new FileInputStream(inputFile);
-                 OutputStream outputStream = new FileOutputStream(outputFile);
-                 CipherOutputStream cipherOutputStream = new CipherOutputStream(outputStream, cipher);
-            ) {
-                byte[] buffer = new byte[1024];
-                int bytesRead = inputStream.read(buffer);
-                while (bytesRead >= 0) {
-                    cipherOutputStream.write(buffer, 0, bytesRead);
-                    bytesRead = inputStream.read(buffer);
+//            File inputFile = new File(filePath);
+//            File outputFile = new File(decryptedDirectoryPath + File.separator + inputFile.getName());
+            File directory = new File(filePath);
+            File[] files = directory.listFiles();
+            log.info("files reading");
+
+            if (files != null) {
+                for (File inputFile : files) {
+                    File outputFile = new File(decryptedDirectoryPath + File.separator + inputFile.getName());
+                    // Perform operations with inputFile and outputFile as needed
+                    System.out.println("Input File: " + inputFile.getAbsolutePath());
+                    System.out.println("Output File: " + outputFile.getAbsolutePath());
+
+                    try (InputStream inputStream = new FileInputStream(inputFile);
+                         OutputStream outputStream = new FileOutputStream(outputFile);
+                         CipherOutputStream cipherOutputStream = new CipherOutputStream(outputStream, cipher);
+                    ) {
+                        byte[] buffer = new byte[1024];
+                        int bytesRead = inputStream.read(buffer);
+                        while (bytesRead >= 0) {
+                            cipherOutputStream.write(buffer, 0, bytesRead);
+                            bytesRead = inputStream.read(buffer);
+                        }
+                    }
                 }
             }
+
         } catch (Exception e) {
             log.error("Error encrypting/decrypting file:", e);
         }
+
     }
 
     /*
@@ -102,7 +117,6 @@ public class SpringBatchListener implements JobExecutionListener {
     @Override
     public void afterJob(JobExecution jobExecution) {
         try {
-
             String checksum = calculateMD5Checksum(filePath);
             int recordCount = getRecordCount(filePath);
             String fileName = getFileName(filePath);
@@ -168,6 +182,4 @@ public class SpringBatchListener implements JobExecutionListener {
         long durationSeconds = (endTime - startTime) / 1000;
         log.info("Job duration: " + durationSeconds + " seconds");
     }
-
-
 }
