@@ -22,14 +22,11 @@ public class StepItemWriteListener implements ItemWriteListener<JSONObject> {
     public void beforeWrite(List<? extends JSONObject> items) {
         Map<String, List<String>> fieldsToBeTokenizedValue = new HashMap<>();
         items.forEach(jsonObject -> fieldsToBeTokenized.forEach(fieldName -> {
-            List<String> value = null;
-            if (fieldsToBeTokenizedValue.containsKey(fieldName)) {
-                value = fieldsToBeTokenizedValue.get(fieldName);
-                value.add(jsonObject.getString(fieldName));
-            } else {
+            List<String> value = fieldsToBeTokenizedValue.get(fieldName);
+            if (null == value) {
                 value = new ArrayList<>();
-                value.add(jsonObject.getString(fieldName));
             }
+            value.add(jsonObject.getString(fieldName));
             fieldsToBeTokenizedValue.put(fieldName, value);
         }));
         log.info("======================STEP LISTENER==================");

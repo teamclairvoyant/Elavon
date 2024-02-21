@@ -3,11 +3,10 @@ package com.poc.processdata.config.listener;
 import com.poc.processdata.azure.AzureADLSPush;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.Cipher;
@@ -65,49 +64,12 @@ public class SpringBatchListener implements JobExecutionListener {
     }
 
     @Override
-    public void beforeJob(JobExecution jobExecution) {
+    public void beforeJob(@NotNull JobExecution jobExecution) {
         startTime = System.currentTimeMillis();
         long timesec = startTime;
         log.info("Job started at: " + timesec);
-        decrypt();
     }
 
-    /*
-    Decrypts the file specified by 'filePath' using the provided SECRET_KEY and writes the decrypted content to 'decryptedFilePath'.
-    Implementation details for file decryption using a specified algorithm and key
-        */
-    public void decrypt() {
-        try {
-            SecretKey secretKeySpec = new SecretKeySpec(this.secretKey.getBytes(), algorithm);
-            Cipher cipher = Cipher.getInstance(transformation);
-            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
-            File directory = new File(filePath);
-            File[] files = directory.listFiles();
-            log.info("files reading");
-
-            if (files != null) {
-                for (File inputFile : files) {
-                    File outputFile = new File(decryptedDirectoryPath + File.separator + inputFile.getName());
-                    // Perform operations with inputFile and outputFile as needed
-                    try (InputStream inputStream = new FileInputStream(inputFile);
-                         OutputStream outputStream = new FileOutputStream(outputFile);
-                         CipherOutputStream cipherOutputStream = new CipherOutputStream(outputStream, cipher);
-                    ) {
-                        byte[] buffer = new byte[1024];
-                        int bytesRead = inputStream.read(buffer);
-                        while (bytesRead >= 0) {
-                            cipherOutputStream.write(buffer, 0, bytesRead);
-                            bytesRead = inputStream.read(buffer);
-                        }
-                    }
-                }
-            }
-
-        } catch (Exception e) {
-            log.error("Error encrypting/decrypting file:", e);
-        }
-
-    }
 
     /*
     Implementation details for calculating checksum, record count, and file name, writing to QC file, pushing to Azure ADLS, and logging the generated QC file name
@@ -116,22 +78,28 @@ public class SpringBatchListener implements JobExecutionListener {
     public void afterJob(JobExecution jobExecution) {
         try {
 
-            PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-            Resource[] resources = resolver.getResources(decryptedFilePath);
-            for (Resource resource : resources) {
-                File file = resource.getFile();
-                String checksum = calculateMD5Checksum(file);
-                int recordCount = getRecordCount(file);
-                String fileName = file.getName();
-                String qcFileName = fileName.substring(0, fileName.indexOf('.')) + "-qc.txt";
+            File directory = new File(decryptedDirectoryPath);
+            File[] files = directory.listFiles();
+            if (null != files && files.length > 0) {
+                for (File file : files) {
+                    String checksum = calculateMD5Checksum(file);
+                    int recordCount = getRecordCount(file);
+                    String fileName = file.getName();
+                    String qcFileName = fileName.substring(0, fileName.indexOf('.')) + "-qc.txt";
 
-                writeQCFile(qcFileName, fileName, recordCount, checksum);
-                log.info("QC file generated: " + qcFileName);
+                    writeQCFile(qcFileName, fileName, recordCount, checksum);
+                    log.info("QC file generated: " + qcFileName);
+                }
+                azureADLSPush.pushToADLS();
             }
-            azureADLSPush.pushToADLS();
         } catch (IOException | NoSuchAlgorithmException e) {
             log.error("Error while generating QC file", e);
         }
+        long endTime = System.currentTimeMillis();
+        log.info("Job finished at: " + endTime);
+
+        long durationSeconds = (endTime - startTime) / 1000;
+        log.info("Job duration: " + durationSeconds + " seconds");
     }
 
     /*
@@ -175,10 +143,5 @@ public class SpringBatchListener implements JobExecutionListener {
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(resultPath + "\\" + qcFileName))) {
             writer.write(fileName + "|" + recordCount + "|" + checksum);
         }
-        long endTime = System.currentTimeMillis();
-        log.info("Job finished at: " + endTime);
-
-        long durationSeconds = (endTime - startTime) / 1000;
-        log.info("Job duration: " + durationSeconds + " seconds");
     }
 }

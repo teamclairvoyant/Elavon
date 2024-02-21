@@ -1,10 +1,9 @@
 package com.poc.processdata.config;
 
 import com.opencsv.CSVWriter;
-import com.poc.processdata.config.listener.StepItemWriteListener;
 import com.poc.processdata.config.listener.SpringBatchListener;
+import com.poc.processdata.config.listener.StepItemWriteListener;
 import com.poc.processdata.helper.BatchHelper;
-import io.micrometer.core.lang.Nullable;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
@@ -44,8 +43,11 @@ public class SpringBatchConfig {
 
     private static final String FILE_DELIMITER = "\\";
 
-    @Value("${spring.batch.file.decryptedFilePath}")
-    private String decryptedFilePath;
+    @Value("${spring.batch.file.filePath}")
+    private String filePath;
+
+    @Value("${spring.batch.file.decryptedDirectoryPath}")
+    private String decryptedDirectoryPath;
 
     @Value("${spring.batch.file.headerColumns}")
     private String headerColumns;
@@ -69,13 +71,14 @@ public class SpringBatchConfig {
      */
     @Bean
     @StepScope
-    public FlatFileItemReader<String> flatFileItemReader(@Value("#{stepExecutionContext[fileName]}") @Nullable String fileName) {
+    public FlatFileItemReader<String> flatFileItemReader(@Value("#{stepExecutionContext[fileName]}") String fileName) {
         log.info("reading files from reader");
         FlatFileItemReader<String> flatFileItemReader = new FlatFileItemReader<>();
         log.info("FILENAME===========reader" + fileName);
-        FileSystemResource resource = new FileSystemResource(fileName.substring(5));
+        File file = new File(fileName.substring(5));
+        batchHelper.decrypt(file);
+        FileSystemResource resource = new FileSystemResource(decryptedDirectoryPath + File.separator + file.getName());
         flatFileItemReader.setResource(resource);
-
         flatFileItemReader.setLineMapper(new PassThroughLineMapper());
         flatFileItemReader.setLinesToSkip(1);
         return flatFileItemReader;
@@ -146,7 +149,7 @@ public class SpringBatchConfig {
         MultiResourcePartitioner partitioner = new MultiResourcePartitioner();
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         try {
-            partitioner.setResources(resolver.getResources(decryptedFilePath));
+            partitioner.setResources(resolver.getResources(filePath));
         } catch (IOException e) {
             log.error("error in createPartitioner()", e);
         }
