@@ -16,7 +16,7 @@ public class AppConfig {
 
     @Bean
     public Base64.Encoder base64Encoder() {
-        return Base64.getUrlEncoder();
+        return Base64.getEncoder();
     }
 
 

@@ -20,15 +20,15 @@ public class CryptoServiceImpl implements CryptoService {
     private SecureRandom secureRandom;
 
     @Autowired
-    private Base64.Encoder base64Encoder;
+    private Base64.Encoder encoder;
 
     @Override
     public String tokenize(String dataToBeTokenized) {
-        System.out.println("dataToBeTokenized"+dataToBeTokenized);
+        System.out.println("dataToBeTokenized" + dataToBeTokenized);
         if (null != dataToBeTokenized) {
             byte[] dataToBeTokenizedBytes = new byte[dataToBeTokenized.getBytes().length];
             secureRandom.nextBytes(dataToBeTokenizedBytes);
-            return base64Encoder.encodeToString(dataToBeTokenizedBytes);
+            return encoder.encodeToString(dataToBeTokenizedBytes);
         }
         return null;
     }
@@ -43,6 +43,24 @@ public class CryptoServiceImpl implements CryptoService {
             responseJSON.put(key, decryptedData);
         });
         return responseJSON.toString();
+    }
+
+    @Override
+    public String tokenizeMultipleJsonData(String dataToBeTokenized) {
+        if (null != dataToBeTokenized && !dataToBeTokenized.isEmpty()) {
+            JSONObject jsonObject = new JSONObject(dataToBeTokenized);
+            JSONObject response = new JSONObject();
+            jsonObject.keySet().forEach(key -> {
+                JSONObject nested = jsonObject.getJSONObject(key);
+                JSONObject nestedRes = new JSONObject();
+                nested.keySet().forEach(nestedKey -> {
+                    nestedRes.put(nestedKey, tokenize(nested.get(nestedKey).toString()));
+                });
+                response.put(key, nestedRes);
+            });
+            return response.toString();
+        }
+        return null;
     }
 
     private String decryptJSONKey(String value) {

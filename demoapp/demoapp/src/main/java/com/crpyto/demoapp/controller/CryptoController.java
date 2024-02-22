@@ -26,4 +26,9 @@ public class CryptoController {
         return cryptoService.tokenize(dataToBeTokenized);
     }
 
+    @PostMapping("/tokenize/v2")
+    public String tokenizeMultiple(@RequestBody String dataToBeTokenized) {
+        return cryptoService.tokenizeMultipleJsonData(dataToBeTokenized);
+    }
+
 }

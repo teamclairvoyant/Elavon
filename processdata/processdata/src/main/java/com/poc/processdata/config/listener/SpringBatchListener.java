@@ -9,10 +9,6 @@ import org.springframework.batch.core.JobExecutionListener;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.Cipher;
-import javax.crypto.CipherOutputStream;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -22,19 +18,12 @@ import java.security.NoSuchAlgorithmException;
 @Component
 public class SpringBatchListener implements JobExecutionListener {
 
-    @Value("${spring.batch.file.SECRET_KEY}")
-    private String secretKey;
     @Value("${spring.batch.file.result}")
     private String resultPath;
-    @Value("${spring.batch.file.filePath}")
-    private String filePath;
 
     @Value("${spring.batch.file.decryptedDirectoryPath}")
     private String decryptedDirectoryPath;
-    @Value("${spring.batch.file.ALGORITHM}")
-    private String algorithm;
-    @Value("${spring.batch.file.TRANSFORMATION}")
-    private String transformation;
+
     /*
      pushing data to ADLS
      */
@@ -76,6 +65,10 @@ public class SpringBatchListener implements JobExecutionListener {
      */
     @Override
     public void afterJob(JobExecution jobExecution) {
+        long endTime = System.currentTimeMillis();
+        log.info("Job finished at: " + endTime);
+        long durationSeconds = (endTime - startTime) / 1000;
+        log.info("Job duration: " + durationSeconds + " seconds");
         try {
 
             File directory = new File(decryptedDirectoryPath);
@@ -95,11 +88,6 @@ public class SpringBatchListener implements JobExecutionListener {
         } catch (IOException | NoSuchAlgorithmException e) {
             log.error("Error while generating QC file", e);
         }
-        long endTime = System.currentTimeMillis();
-        log.info("Job finished at: " + endTime);
-
-        long durationSeconds = (endTime - startTime) / 1000;
-        log.info("Job duration: " + durationSeconds + " seconds");
     }
 
     /*

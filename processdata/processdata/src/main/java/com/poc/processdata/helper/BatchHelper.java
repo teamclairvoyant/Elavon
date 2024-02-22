@@ -2,6 +2,7 @@ package com.poc.processdata.helper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -16,7 +17,9 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.sql.Timestamp;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -24,10 +27,13 @@ import java.util.List;
 public class BatchHelper {
 
     @Value("${spring.batch.data.fieldsToBeTokenized}")
-    private String fieldsToBeTokenized;
+    private List<String> fieldsToBeTokenized;
 
     @Value("${spring.batch.file.uuidColumns}")
     private String uuidColumns;
+
+    @Value("${spring.batch.file.idColumn}")
+    private String idColumn;
 
     @Value("${spring.batch.file.headerColumns}")
     private List<String> headerColumns;
@@ -53,37 +59,55 @@ public class BatchHelper {
     public void tokenizeData(JSONObject responseJsonObject) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        String[] fieldsToBeTokenizedArray = fieldsToBeTokenized.split(",");
-        for (String fieldToTokenize : fieldsToBeTokenizedArray) {
+        for (String fieldToTokenize : fieldsToBeTokenized) {
             HttpEntity<String> httpEntity = new HttpEntity<>(responseJsonObject.get(fieldToTokenize).toString(), headers);
             String tokenizedValue = restTemplate.postForObject("http://localhost:8080/cryptoapp/tokenize", httpEntity, String.class);
             responseJsonObject.put(fieldToTokenize, tokenizedValue);
         }
     }
 
-    public void tokenizeDataMultiple(JSONObject responseJsonObject) {
+    public void tokenizeDataAndAddRecordId(List<? extends JSONObject> items) {
+        Map<String, Map<String, String>> fieldsToBeTokenizedReq = prepareRequest(items);
+
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        String[] fieldsToBeTokenizedArray = fieldsToBeTokenized.split(",");
-        for (String fieldToTokenize : fieldsToBeTokenizedArray) {
-            HttpEntity<String> httpEntity = new HttpEntity<>(responseJsonObject.get(fieldToTokenize).toString(), headers);
-            String tokenizedValue = restTemplate.postForObject("http://localhost:8080/cryptoapp/tokenize", httpEntity, String.class);
-            responseJsonObject.put(fieldToTokenize, tokenizedValue);
-        }
+        HttpEntity<Map<String, Map<String, String>>> httpEntity = new HttpEntity<>(fieldsToBeTokenizedReq, headers);
+        String tokenizedString = restTemplate.postForObject("http://localhost:8080/cryptoapp/tokenize/v2", httpEntity, String.class);
+        JSONObject tokenizedValue = new JSONObject(tokenizedString);
+
+        items.forEach(jsonObject -> {
+            addRecordId(jsonObject);
+                JSONObject respData = tokenizedValue.getJSONObject(jsonObject.getString(idColumn));
+                respData.keySet().forEach(key -> {
+                    jsonObject.put(key, respData.getString(key));
+                });
+        });
+    }
+
+    @NotNull
+    private Map<String, Map<String, String>> prepareRequest(List<? extends JSONObject> items) {
+        Map<String, Map<String, String>> fieldsToBeTokenizedReq = new HashMap<>();
+        items.forEach(jsonObject -> {
+            Map<String, String> data = new HashMap<>();
+            fieldsToBeTokenized.forEach(fieldName -> {
+                data.put(fieldName, jsonObject.getString(fieldName));
+            });
+            fieldsToBeTokenizedReq.put(jsonObject.get(idColumn).toString(), data);
+        });
+        return fieldsToBeTokenizedReq;
     }
 
     /*
     Create a unique record ID by concatenating values from specified UUID columns and timestamp
      */
-    public JSONObject addRecordId(JSONObject response) {
+    public void addRecordId(JSONObject jsonObject) {
         String[] uuidCols = uuidColumns.split(",");
         StringBuilder sb = new StringBuilder();
         for (String uuIdCol : uuidCols) {
-            sb.append(response.get(uuIdCol)).append("_");
+            sb.append(jsonObject.get(uuIdCol)).append("_");
         }
         sb.append(new Timestamp(System.currentTimeMillis()));
-        response.put("record_id", sb.toString());
-        return response;
+        jsonObject.put("record_id", sb.toString());
     }
 
     /*

@@ -2,7 +2,6 @@ package com.poc.processdata.config;
 
 import com.opencsv.CSVWriter;
 import com.poc.processdata.config.listener.SpringBatchListener;
-import com.poc.processdata.config.listener.StepItemWriteListener;
 import com.poc.processdata.helper.BatchHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -63,8 +62,6 @@ public class SpringBatchConfig {
 
     private final BatchHelper batchHelper;
 
-    private final StepItemWriteListener stepItemWriteListener;
-
     /*
     This will create a beam of Item reader and item reader reads data from source
     Created FlatFileItemReader instance and configured it
@@ -97,9 +94,7 @@ public class SpringBatchConfig {
 
             log.info("get json objects", jsonObject);
 
-            batchHelper.tokenizeData(jsonObject);
-
-            return batchHelper.addRecordId(jsonObject);
+            return jsonObject;
         };
     }
 
@@ -112,34 +107,37 @@ public class SpringBatchConfig {
     @Bean
     @StepScope
     public ItemWriter<JSONObject> itemWriter(@Value("#{stepExecutionContext[fileName]}") String filePath) {
-        return items -> items.forEach(item ->
-        {
-            log.info((item.toString()), "-------------");
-            log.info(filePath + "---------writer---------------");
-            File file = new File(resultPath + FILE_DELIMITER + filePath.substring(filePath.lastIndexOf("/") + 1));
-            String columns = headerColumns;
-            String[] columnsArr = columns.split(",");
-            String[] data = new String[columnsArr.length + 1];
-            int i = 0;
-            for (String key : columnsArr) {
-                data[i] = item.get(key).toString();
-                i++;
-            }
-            try (FileWriter outputFile = new FileWriter(file, true); CSVWriter writer = new CSVWriter(outputFile, ',', CSVWriter.NO_QUOTE_CHARACTER)) {
-                writer.writeNext(data);
-            } catch (IOException e) {
-                log.error("error while writing", e);
-            }
-        });
+
+        return items -> {
+            batchHelper.tokenizeDataAndAddRecordId(items);
+            items.forEach(item -> {
+                log.info((item.toString()), "-------------");
+                log.info(filePath + "---------writer---------------");
+                File file = new File(resultPath + FILE_DELIMITER + filePath.substring(filePath.lastIndexOf("/") + 1));
+                String columns = headerColumns;
+                String[] columnsArr = columns.split(",");
+                String[] data = new String[columnsArr.length + 1];
+                int i = 0;
+                for (String key : columnsArr) {
+                    data[i] = item.get(key).toString();
+                    i++;
+                }
+                try (FileWriter outputFile = new FileWriter(file, true); CSVWriter writer = new CSVWriter(outputFile, ',', CSVWriter.NO_QUOTE_CHARACTER)) {
+                    writer.writeNext(data);
+                } catch (IOException e) {
+                    log.error("error while writing", e);
+                }
+            });
+        };
     }
 
 
     @Bean
-    public Step cerateMasterStep() {
-        return stepBuilderFactory.get("MasterStep")
+    public Step createMasterStep() {
+        return stepBuilderFactory.get("master")
                 .partitioner("partition", createPartitioner())
                 .step(step1())
-                .gridSize(4)
+                .gridSize(2000)
                 .taskExecutor(taskExecutor())
                 .build();
     }
@@ -163,8 +161,7 @@ public class SpringBatchConfig {
     @Bean
     public Step step1() {
         return stepBuilderFactory.get("step1")
-                .<String, JSONObject>chunk(10)
-                .listener(stepItemWriteListener)
+                .<String, JSONObject>chunk(1000)
                 .reader(flatFileItemReader(null))
                 .processor(itemProcessor())
                 .writer(itemWriter(null))
@@ -174,8 +171,8 @@ public class SpringBatchConfig {
 
     private TaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setMaxPoolSize(2);
-        executor.setQueueCapacity(20);
+        executor.setMaxPoolSize(10);
+        executor.setQueueCapacity(5000);
         executor.setCorePoolSize(2);
         executor.afterPropertiesSet();
         return executor;
@@ -193,7 +190,7 @@ public class SpringBatchConfig {
     public Job job() {
         return jobBuilderFactory.get("job").listener(springBatchListener)
                 .incrementer(new RunIdIncrementer())
-                .flow(cerateMasterStep())
+                .flow(createMasterStep())
                 .end()
                 .build();
     }
