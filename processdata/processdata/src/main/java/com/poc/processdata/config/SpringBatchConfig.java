@@ -161,7 +161,7 @@ public class SpringBatchConfig {
     @Bean
     public Step step1() {
         return stepBuilderFactory.get("step1")
-                .<String, JSONObject>chunk(1000)
+                .<String, JSONObject>chunk(10000)
                 .reader(flatFileItemReader(null))
                 .processor(itemProcessor())
                 .writer(itemWriter(null))
@@ -172,7 +172,7 @@ public class SpringBatchConfig {
     private TaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setMaxPoolSize(10);
-        executor.setQueueCapacity(5000);
+        executor.setQueueCapacity(25);
         executor.setCorePoolSize(2);
         executor.afterPropertiesSet();
         return executor;
