@@ -16,10 +16,10 @@ import javax.crypto.CipherOutputStream;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.sql.Timestamp;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @RequiredArgsConstructor
@@ -77,10 +77,10 @@ public class BatchHelper {
 
         items.forEach(jsonObject -> {
             addRecordId(jsonObject);
-                JSONObject respData = tokenizedValue.getJSONObject(jsonObject.getString(idColumn));
-                respData.keySet().forEach(key -> {
-                    jsonObject.put(key, respData.getString(key));
-                });
+            JSONObject respData = tokenizedValue.getJSONObject(jsonObject.getString(idColumn));
+            respData.keySet().forEach(key -> {
+                jsonObject.put(key, respData.getString(key));
+            });
         });
     }
 
@@ -148,6 +148,21 @@ public class BatchHelper {
             log.error("Error encrypting/decrypting file:", e);
         }
 
+    }
+
+    public List<String> decryptAsList(File file) {
+        List<String> data = new ArrayList<>();
+        try {
+            byte[] fileContent = Files.readAllBytes(file.toPath());
+            Cipher cipher = Cipher.getInstance(this.algorithm);
+            SecretKeySpec secretKeySpec = new SecretKeySpec(this.secretKey.getBytes(), this.algorithm);
+            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+            String decryptedString = new String(cipher.doFinal(fileContent), StandardCharsets.UTF_8);
+            data.addAll(Arrays.asList(decryptedString.split("\r\n")));
+        } catch (Exception e) {
+            log.error("Error occured while reading/decrypting file", e);
+        }
+        return data;
     }
 
 }

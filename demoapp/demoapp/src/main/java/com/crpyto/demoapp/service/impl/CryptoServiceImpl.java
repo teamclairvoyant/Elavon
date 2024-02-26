@@ -47,6 +47,7 @@ public class CryptoServiceImpl implements CryptoService {
 
     @Override
     public String tokenizeMultipleJsonData(String dataToBeTokenized) {
+        System.out.println(dataToBeTokenized);
         if (null != dataToBeTokenized && !dataToBeTokenized.isEmpty()) {
             JSONObject jsonObject = new JSONObject(dataToBeTokenized);
             JSONObject response = new JSONObject();

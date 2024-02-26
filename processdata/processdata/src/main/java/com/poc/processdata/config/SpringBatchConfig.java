@@ -1,7 +1,7 @@
 package com.poc.processdata.config;
 
 import com.opencsv.CSVWriter;
-import com.poc.processdata.config.listener.SpringBatchListener;
+import com.poc.processdata.config.tasklet.QCFileTasklet;
 import com.poc.processdata.helper.BatchHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.core.task.TaskExecutor;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -58,9 +57,11 @@ public class SpringBatchConfig {
 
     private final JobBuilderFactory jobBuilderFactory;
 
-    private final SpringBatchListener springBatchListener;
-
     private final BatchHelper batchHelper;
+
+    private final TaskExecutor taskExecutor;
+
+    private final QCFileTasklet qcFileTasklet;
 
     /*
     This will create a beam of Item reader and item reader reads data from source
@@ -74,6 +75,10 @@ public class SpringBatchConfig {
         log.info("FILENAME===========reader" + fileName);
         File file = new File(fileName.substring(5));
         batchHelper.decrypt(file);
+//        List<String> dataList = batchHelper.decryptAsList(file);
+//        System.out.println("list size=================="+dataList.size());
+//        ListItemReader<String> itemReader = new ListItemReader<>(dataList);
+
         FileSystemResource resource = new FileSystemResource(decryptedDirectoryPath + File.separator + file.getName());
         flatFileItemReader.setResource(resource);
         flatFileItemReader.setLineMapper(new PassThroughLineMapper());
@@ -107,12 +112,12 @@ public class SpringBatchConfig {
     @Bean
     @StepScope
     public ItemWriter<JSONObject> itemWriter(@Value("#{stepExecutionContext[fileName]}") String filePath) {
-
         return items -> {
             batchHelper.tokenizeDataAndAddRecordId(items);
             items.forEach(item -> {
                 log.info((item.toString()), "-------------");
                 log.info(filePath + "---------writer---------------");
+//                System.out.println(filePath + "---------writer---------------");
                 File file = new File(resultPath + FILE_DELIMITER + filePath.substring(filePath.lastIndexOf("/") + 1));
                 String columns = headerColumns;
                 String[] columnsArr = columns.split(",");
@@ -133,17 +138,17 @@ public class SpringBatchConfig {
 
 
     @Bean
-    public Step createMasterStep() {
-        return stepBuilderFactory.get("master")
-                .partitioner("partition", createPartitioner())
-                .step(step1())
-                .gridSize(2000)
-                .taskExecutor(taskExecutor())
+    public Step readFilesMasterStep() {
+        return stepBuilderFactory.get("readFilesMasterStep")
+                .partitioner("readFilesPartitioner", readFilesPartitioner())
+                .step(readAndProcessStep())
+                .gridSize(500)
+                .taskExecutor(taskExecutor)
                 .build();
     }
 
     @Bean
-    public Partitioner createPartitioner() {
+    public Partitioner readFilesPartitioner() {
         MultiResourcePartitioner partitioner = new MultiResourcePartitioner();
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
         try {
@@ -152,30 +157,28 @@ public class SpringBatchConfig {
             log.error("error in createPartitioner()", e);
         }
         return partitioner;
-
     }
 
     /*
     Configure and build a Step named "step1" to read, process, and write data in chunks
      */
     @Bean
-    public Step step1() {
-        return stepBuilderFactory.get("step1")
-                .<String, JSONObject>chunk(10000)
+    public Step readAndProcessStep() {
+        return stepBuilderFactory.get("readAndProcessStep")
+                .<String, JSONObject>chunk(1000)
                 .reader(flatFileItemReader(null))
                 .processor(itemProcessor())
                 .writer(itemWriter(null))
-                .taskExecutor(taskExecutor()).throttleLimit(10)
+                .taskExecutor(taskExecutor)
+                .throttleLimit(8)
                 .build();
     }
 
-    private TaskExecutor taskExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setMaxPoolSize(10);
-        executor.setQueueCapacity(25);
-        executor.setCorePoolSize(2);
-        executor.afterPropertiesSet();
-        return executor;
+    @Bean
+    public Step generateQCFileTasklet() {
+        return stepBuilderFactory.get("generateQCFileTasklet")
+                .tasklet(qcFileTasklet)
+                .build();
     }
 
 
@@ -188,9 +191,10 @@ public class SpringBatchConfig {
      */
     @Bean
     public Job job() {
-        return jobBuilderFactory.get("job").listener(springBatchListener)
+        return jobBuilderFactory.get("job")
                 .incrementer(new RunIdIncrementer())
-                .flow(createMasterStep())
+                .flow(readFilesMasterStep())
+                .next(generateQCFileTasklet())
                 .end()
                 .build();
     }
