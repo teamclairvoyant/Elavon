@@ -2,7 +2,6 @@ package com.poc.processdata.helper;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -37,9 +36,6 @@ public class BatchHelper {
 
     @Value("${spring.batch.file.headerColumns}")
     private List<String> headerColumns;
-
-//    @Value("${spring.batch.file.filePath}")
-//    private String filePath;
 
     @Value("${spring.batch.file.decryptedDirectoryPath}")
     private String decryptedDirectoryPath;
@@ -78,20 +74,19 @@ public class BatchHelper {
         items.forEach(jsonObject -> {
             addRecordId(jsonObject);
             JSONObject respData = tokenizedValue.getJSONObject(jsonObject.getString(idColumn));
-            respData.keySet().forEach(key -> {
-                jsonObject.put(key, respData.getString(key));
-            });
+            respData.keySet().forEach(key ->
+                    jsonObject.put(key, respData.getString(key))
+            );
         });
     }
 
-    @NotNull
     private Map<String, Map<String, String>> prepareRequest(List<? extends JSONObject> items) {
         Map<String, Map<String, String>> fieldsToBeTokenizedReq = new HashMap<>();
         items.forEach(jsonObject -> {
             Map<String, String> data = new HashMap<>();
-            fieldsToBeTokenized.forEach(fieldName -> {
-                data.put(fieldName, jsonObject.getString(fieldName));
-            });
+            fieldsToBeTokenized.forEach(fieldName ->
+                    data.put(fieldName, jsonObject.getString(fieldName))
+            );
             fieldsToBeTokenizedReq.put(jsonObject.get(idColumn).toString(), data);
         });
         return fieldsToBeTokenizedReq;

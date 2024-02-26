@@ -1,4 +1,4 @@
-package com.poc.processdata.azure;
+package com.poc.processdata.helper;
 
 import com.azure.storage.file.datalake.DataLakeFileClient;
 import com.azure.storage.file.datalake.DataLakeFileSystemClient;
@@ -13,7 +13,7 @@ import java.io.File;
 @Slf4j
 @Component
 @NoArgsConstructor
-public class AzureADLSPush {
+public class AzureHelper {
 
     @Value("${spring.azure.adls.containerName}")
     private String containerName;

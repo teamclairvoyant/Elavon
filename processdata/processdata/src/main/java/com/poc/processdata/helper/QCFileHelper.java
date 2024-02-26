@@ -1,6 +1,5 @@
 package com.poc.processdata.helper;
 
-import com.poc.processdata.azure.AzureADLSPush;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,24 +20,18 @@ public class QCFileHelper {
     /*
     pushing data to ADLS
     */
-    private final AzureADLSPush azureADLSPush;
+    private final AzureHelper azureADLSPush;
 
-    public void createQCFiles() {
+    public void createQCFile(File processedFile) {
         try {
-            File directory = new File(resultPath);
-            File[] files = directory.listFiles(pathname -> pathname.getName().endsWith(".csv"));
-            if (null != files) {
-                for (File file : files) {
-                    String checksum = calculateMD5Checksum(file);
-                    int recordCount = getRecordCount(file);
-                    String fileName = file.getName();
-                    String qcFileName = fileName.substring(0, fileName.indexOf('.')) + "-qc.txt";
+            String checksum = calculateMD5Checksum(processedFile);
+            int recordCount = getRecordCount(processedFile);
+            String fileName = processedFile.getName();
+            String qcFileName = fileName.substring(0, fileName.indexOf('.')) + "-qc.txt";
 
-                    writeQCFile(qcFileName, fileName, recordCount, checksum);
-                    log.info("QC file generated: " + qcFileName);
-                }
-                azureADLSPush.pushToADLS();
-            }
+            writeQCFile(qcFileName, fileName, recordCount, checksum);
+            log.info("QC file generated: " + qcFileName);
+//                azureADLSPush.pushToADLS();
         } catch (IOException | NoSuchAlgorithmException e) {
             log.error("Error while generating QC file", e);
         }

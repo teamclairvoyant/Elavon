@@ -1,6 +1,7 @@
 package com.poc.processdata.config;
 
 import com.opencsv.CSVWriter;
+import com.poc.processdata.config.tasklet.PushToADLSTasklet;
 import com.poc.processdata.config.tasklet.QCFileTasklet;
 import com.poc.processdata.helper.BatchHelper;
 import lombok.RequiredArgsConstructor;
@@ -39,8 +40,6 @@ Configuration class for Spring Batch, defining properties, and writing necessary
 @RequiredArgsConstructor
 public class SpringBatchConfig {
 
-    private static final String FILE_DELIMITER = "\\";
-
     @Value("${spring.batch.file.filePath}")
     private String filePath;
 
@@ -63,6 +62,8 @@ public class SpringBatchConfig {
 
     private final QCFileTasklet qcFileTasklet;
 
+    private final PushToADLSTasklet pushToADLSTasklet;
+
     /*
     This will create a beam of Item reader and item reader reads data from source
     Created FlatFileItemReader instance and configured it
@@ -72,7 +73,6 @@ public class SpringBatchConfig {
     public FlatFileItemReader<String> flatFileItemReader(@Value("#{stepExecutionContext[fileName]}") String fileName) {
         log.info("reading files from reader");
         FlatFileItemReader<String> flatFileItemReader = new FlatFileItemReader<>();
-        log.info("FILENAME===========reader" + fileName);
         File file = new File(fileName.substring(5));
         batchHelper.decrypt(file);
 //        List<String> dataList = batchHelper.decryptAsList(file);
@@ -83,6 +83,14 @@ public class SpringBatchConfig {
         flatFileItemReader.setResource(resource);
         flatFileItemReader.setLineMapper(new PassThroughLineMapper());
         flatFileItemReader.setLinesToSkip(1);
+        flatFileItemReader.setSkippedLinesCallback(skippedLine -> {
+            File resultFile = new File(resultPath + File.separator + file.getName());
+            try (FileWriter outputFile = new FileWriter(resultFile); CSVWriter writer = new CSVWriter(outputFile, ',', CSVWriter.NO_QUOTE_CHARACTER)) {
+                writer.writeNext(headerColumns.split(","));
+            } catch (IOException e) {
+                log.error("error while writing header", e);
+            }
+        });
         return flatFileItemReader;
     }
 
@@ -115,10 +123,7 @@ public class SpringBatchConfig {
         return items -> {
             batchHelper.tokenizeDataAndAddRecordId(items);
             items.forEach(item -> {
-                log.info((item.toString()), "-------------");
-                log.info(filePath + "---------writer---------------");
-//                System.out.println(filePath + "---------writer---------------");
-                File file = new File(resultPath + FILE_DELIMITER + filePath.substring(filePath.lastIndexOf("/") + 1));
+                File file = new File(resultPath + File.separator + filePath.substring(filePath.lastIndexOf("/") + 1));
                 String columns = headerColumns;
                 String[] columnsArr = columns.split(",");
                 String[] data = new String[columnsArr.length + 1];
@@ -175,9 +180,39 @@ public class SpringBatchConfig {
     }
 
     @Bean
+    public Step generateQCMasterStep() {
+        return stepBuilderFactory.get("generateQCMasterStep")
+                .partitioner("generateQCMasterStep", generateQCPartitioner())
+                .step(generateQCFileTasklet())
+                .gridSize(5)
+                .taskExecutor(taskExecutor)
+                .build();
+    }
+
+    @Bean
+    @StepScope
+    public Partitioner generateQCPartitioner() {
+        MultiResourcePartitioner partitioner = new MultiResourcePartitioner();
+        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
+        try {
+            partitioner.setResources(resolver.getResources("file:" + resultPath + "/*.csv"));
+        } catch (IOException e) {
+            log.error("error in createPartitioner()", e);
+        }
+        return partitioner;
+    }
+
+    @Bean
     public Step generateQCFileTasklet() {
         return stepBuilderFactory.get("generateQCFileTasklet")
                 .tasklet(qcFileTasklet)
+                .build();
+    }
+
+    @Bean
+    public Step pushResultsToADLSTasklet() {
+        return stepBuilderFactory.get("pushResultsToADLSTasklet")
+                .tasklet(pushToADLSTasklet)
                 .build();
     }
 
@@ -194,7 +229,8 @@ public class SpringBatchConfig {
         return jobBuilderFactory.get("job")
                 .incrementer(new RunIdIncrementer())
                 .flow(readFilesMasterStep())
-                .next(generateQCFileTasklet())
+                .next(generateQCMasterStep())
+                .next(pushResultsToADLSTasklet())
                 .end()
                 .build();
     }

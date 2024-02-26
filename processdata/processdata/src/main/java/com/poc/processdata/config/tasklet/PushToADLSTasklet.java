@@ -1,6 +1,6 @@
 package com.poc.processdata.config.tasklet;
 
-import com.poc.processdata.helper.QCFileHelper;
+import com.poc.processdata.helper.AzureHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.StepContribution;
@@ -9,22 +9,17 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.stereotype.Component;
 
-import java.io.File;
-
 @Component
 @RequiredArgsConstructor
 @Slf4j
-public class QCFileTasklet implements Tasklet {
+public class PushToADLSTasklet implements Tasklet {
 
-
-    private final QCFileHelper qcFileHelper;
+    private final AzureHelper azureHelper;
 
     @Override
     public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) throws Exception {
-        log.info("Creating QC file");
-        File processedFile = new File(chunkContext.getStepContext().getStepExecutionContext().get("fileName").toString().substring(5));
-        qcFileHelper.createQCFile(processedFile);
-        log.info("QC file created");
+        log.info("Pushing to ADLS2");
+        azureHelper.pushToADLS();
         return RepeatStatus.FINISHED;
     }
 }
