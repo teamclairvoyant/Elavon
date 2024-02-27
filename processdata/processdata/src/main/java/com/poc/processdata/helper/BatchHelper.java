@@ -102,7 +102,7 @@ public class BatchHelper {
             sb.append(jsonObject.get(uuIdCol)).append("_");
         }
         sb.append(new Timestamp(System.currentTimeMillis()));
-        jsonObject.put("record_id", sb.toString());
+        jsonObject.put("record_id", UUID.nameUUIDFromBytes(sb.toString().getBytes()));
     }
 
     /*
