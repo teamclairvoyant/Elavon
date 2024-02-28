@@ -31,7 +31,9 @@ class HashingDriver:
 
         # Read JSON data into DataFrame
         json_file_path = self['Paths']['decrypted_output_file']
-        df = spark.read.json(json_file_path)
+        print(json_file_path)
+        df = spark.read.option("multiline", "true").json(json_file_path)
+        print(df)
         df.show()
 
         # Define batch size
@@ -43,7 +45,7 @@ class HashingDriver:
 
         # Specify columns to hash
         # should come from config
-        columns_to_hash = ['median_house_value', 'median_income']
+        columns_to_hash = ['Total_Revenue']
 
         # Process records in batches
         for i in range(num_batches):

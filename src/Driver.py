@@ -6,6 +6,7 @@ from qc import QualityCheck
 from adls import AdlsUpload
 from pyspark.sql import SparkSession
 from ConfigProcessor import get_config_details
+import time
 import os
 
 
@@ -23,6 +24,7 @@ class DataProcessingDriver:
 # Main entry point for the script
 if __name__ == "__main__":
     # Step 1: Initialization and object creation
+    start_time = time.time()
     data_processing = DataProcessingDriver()
 
     # Step 2: Get configuration details
@@ -48,3 +50,6 @@ if __name__ == "__main__":
 
     # Step 8: ADLS Upload
     AdlsUpload.upload_files_to_blob_storage(conf)
+    end_time = time.time()
+    execution_time = end_time - start_time
+    print(f"Execution time: {execution_time} seconds")
