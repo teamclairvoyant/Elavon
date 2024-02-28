@@ -1,0 +1,3 @@
+2024-02-28 16:00:01,762 - INFO - Encrypted data saved successfully at: C:\\Users\\RAKI\\Downloads\\encrypted_data.txt
+2024-02-28 16:00:01,770 - INFO - Decrypted data saved successfully.
+2024-02-28 16:00:01,771 - ERROR - An error occurred: 'NoneType' object has no attribute 'withColumn'
