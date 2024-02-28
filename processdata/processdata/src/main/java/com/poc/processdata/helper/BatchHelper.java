@@ -101,7 +101,7 @@ public class BatchHelper {
         for (String uuIdCol : uuidCols) {
             sb.append(jsonObject.get(uuIdCol)).append("_");
         }
-        sb.append(new Timestamp(System.currentTimeMillis()));
+        sb.append(UUID.randomUUID());
         jsonObject.put("record_id", UUID.nameUUIDFromBytes(sb.toString().getBytes()));
     }
 
