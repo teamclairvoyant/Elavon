@@ -1,0 +1,4 @@
+2024-02-28 18:30:17,811 - INFO - Encrypted data saved successfully at: C:\\Users\\RAKI\\Documents\\Testingtheusecase\\encrypted_data.txt
+2024-02-28 18:30:18,234 - INFO - Decrypted data saved successfully.
+2024-02-28 18:30:27,390 - INFO - DataFrame with UUID saved to: C:\\Users\\RAKI\\Downloads\\uuid\df_with_uuid.json
+2024-02-28 18:30:27,405 - ERROR - An error occurred: Unable to infer schema for JSON. It must be specified manually.;

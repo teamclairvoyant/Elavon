@@ -1,0 +1,4 @@
+2024-02-28 18:34:04,974 - INFO - Encrypted data saved successfully at: C:\\Users\\RAKI\\Documents\\Testingtheusecase\\encrypted_data.txt
+2024-02-28 18:34:05,341 - INFO - Decrypted data saved successfully.
+2024-02-28 18:34:14,377 - INFO - DataFrame with UUID saved to: C:\\Users\\RAKI\\Downloads\\uuid\df_with_uuid.json
+2024-02-28 18:34:14,377 - ERROR - An error occurred: [Errno 13] Permission denied: 'C:\\\\Users\\\\RAKI\\\\Downloads\\\\uuid\\df_with_uuid.json'
