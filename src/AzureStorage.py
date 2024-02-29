@@ -1,14 +1,37 @@
 from azure.storage.blob import BlobServiceClient
 import os
 import logging
+
 class AdlsUpload:
-    """Class for Encrypting the file"""
+    """Class for uploading files to Azure Blob Storage.
+
+    Attributes:
+        spark (object): The Spark session object.
+
+    Methods:
+        upload_files_to_blob_storage: Uploads CSV, JSON, and TXT files to Azure Blob Storage.
+    """
 
     def __init__(self, spark_session):
+        """Initialize the AdlsUpload class.
+
+        Args:
+            spark_session (object): The Spark session object.
+        """
         self.spark = spark_session
 
     def upload_files_to_blob_storage(self):
+        """Upload CSV, JSON, and TXT files to Azure Blob Storage."""
         def upload_to_blob_storage(file_path, file_name):
+            """Upload a file to Azure Blob Storage.
+
+            Args:
+                file_path (str): The local path of the file.
+                file_name (str): The name of the file.
+
+            Raises:
+                Exception: If an error occurs during the upload process.
+            """
             try:
                 blob_service_client = BlobServiceClient.from_connection_string(self['azure_storage']['connection_string'])
                 container_name = self['azure_storage']['container_name']
@@ -35,5 +58,3 @@ class AdlsUpload:
             if any(file_name.endswith(ext) for ext in allowed_extensions):
                 file_path = os.path.join(output_directory, file_name)
                 upload_to_blob_storage(file_path, file_name)
-
-

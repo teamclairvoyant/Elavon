@@ -5,12 +5,24 @@ from datetime import datetime
 
 
 class QualityCheck:
-    """Class for Encrypting the file"""
+    """Class for performing quality checks on decrypted data."""
 
     def __init__(self, spark_session):
+        """
+         Initialize the QualityCheck object.
+
+         Parameters:
+         - spark_session (SparkSession): The Spark session object.
+        """
         self.spark = spark_session
 
     def perform_qc(self, spark):
+        """
+                Perform quality checks on decrypted data.
+
+                Parameters:
+                - spark (SparkSession): The Spark session object.
+        """
         try:
             # Read decrypted data from JSON and write it to the QC directory
             uuid_data = spark.read.json(self['Paths']['uuid_output_path'])
@@ -18,6 +30,16 @@ class QualityCheck:
 
             # Function to calculate MD5 hash for a file
             def calculate_md5(file_path):
+                """
+                    Calculate MD5 hash for a given file.
+
+                    Parameters:
+                    - file_path (str): The path to the file.
+
+                     Returns:
+                    - md5_hash (str): The MD5 hash of the file.
+                    - file_size (int): The size of the file in bytes.
+                """
                 with open(file_path, 'rb') as file_to_check:
                     data = file_to_check.read()
                     count = len(data)

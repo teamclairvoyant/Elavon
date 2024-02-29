@@ -10,12 +10,23 @@ from pyspark.sql import SparkSession
 # spark = SparkSession.builder.appName("YourAppName").getOrCreate()
 
 class IdDriver:
-    """Class for unique id the file"""
+    """Class for unique id generation and DataFrame processing."""
 
     def __init__(self, spark_session):
         self.spark = spark_session
+        """
+                Initialize IdDriver with a SparkSession.
+
+                :param spark_session: The SparkSession instance.
+        """
 
     def process_data_uuid(conf, hashed_values):
+        """
+                Process DataFrame by adding a UUID column and save it to a local file in JSON format.
+
+                :param conf: Configuration dictionary containing 'Paths' with 'uuid_column' and 'uuid_output_path'.
+                :param hashed_values: Input DataFrame.
+        """
         try:
             # Generate a new column with unique identifiers using uuid.uuid4()
             #decrypted_df = spark.createDataFrame(decrypted)
@@ -33,10 +44,3 @@ class IdDriver:
 
         except Exception as e:
             logging.error(f"Error during data processing: {str(e)}")
-
-# Example usage:
-# paths_config should contain the 'output' key for specifying the output path
-# id_driver = IdDriver(spark_session=spark, paths_config={'output': '/your/local/output/path'})
-
-# Assuming 'hashed_values' is your input DataFrame
-# id_driver.process_data_uuid(hashed_values)

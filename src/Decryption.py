@@ -5,12 +5,30 @@ from cryptography.fernet import Fernet
 import logging
 
 class DecryptionDriver:
-    """Class for Decrypting the file"""
+    """Class for Decrypting and Reading Encrypted Data"""
 
     def __init__(self, spark_session):
+        """
+        Initialize the DecryptionDriver.
+
+        Parameters:
+            - spark_session (pyspark.sql.SparkSession): The Spark session object.
+        """
         self.spark = spark_session
 
     def decrypt_and_read_data(conf):
+        """
+        Decrypts the encrypted data and saves it to a JSON file.
+
+        Parameters:
+            - conf (dict): Configuration dictionary containing file paths and settings.
+
+        Raises:
+            - Exception: Any exception raised during the decryption process.
+
+        Returns:
+            None
+        """
         try:
             key_file = conf['Paths']['key_file']
             with open(key_file, 'rb') as mykey:
@@ -34,8 +52,3 @@ class DecryptionDriver:
         except Exception as e:
             logging.error(f"Error during decryption: {str(e)}")
 
-# Example usage:
-# Assuming you have a SparkSession created, you can instantiate DecryptionDriver like this:
-# decryption_driver = DecryptionDriver(spark_session)
-# get_config_details = {'Paths': {'log': 'logs', 'key_file': 'key.key', 'encrypted_file': 'encrypted_data.bin', 'decrypted_output_file': 'decrypted_data.json'}}
-# decryption_driver.decrypt_and_read_data(get_config_details)
