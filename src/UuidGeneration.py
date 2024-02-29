@@ -15,16 +15,16 @@ class IdDriver:
     def __init__(self, spark_session):
         self.spark = spark_session
 
-    def process_data_uuid(self, hashed_values):
+    def process_data_uuid(conf, hashed_values):
         try:
             # Generate a new column with unique identifiers using uuid.uuid4()
             #decrypted_df = spark.createDataFrame(decrypted)
             df_with_uuid = hashed_values.withColumn("uuid_column",
-                                                    sha2(concat(col(self['Paths']['uuid_column']),
+                                                    sha2(concat(col(conf['Paths']['uuid_column']),
                                                                 lit(str(uuid.uuid4()))), 256))
 
             # Save the DataFrame to a local file path in JSON format using Spark's write operation
-            output_path = os.path.join(self['Paths']['uuid_output_path'])
+            output_path = os.path.join(conf['Paths']['uuid_output_path'])
 
             # You can change the file format and options according to your requirement
             df_with_uuid.coalesce(2).write.mode("overwrite").json(output_path)

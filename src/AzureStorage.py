@@ -1,6 +1,6 @@
 from azure.storage.blob import BlobServiceClient
 import os
-
+import logging
 class AdlsUpload:
     """Class for Encrypting the file"""
 
@@ -35,3 +35,5 @@ class AdlsUpload:
             if any(file_name.endswith(ext) for ext in allowed_extensions):
                 file_path = os.path.join(output_directory, file_name)
                 upload_to_blob_storage(file_path, file_name)
+
+
