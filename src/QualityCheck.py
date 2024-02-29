@@ -12,12 +12,6 @@ class QualityCheck:
 
     def perform_qc(self, spark):
         try:
-            # Configure the logger
-            log_filename = os.path.join(self['Paths']['log'],
-                                        f"log_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.txt")
-            logging.basicConfig(filename=log_filename, level=logging.INFO,
-                                format='%(asctime)s - %(levelname)s - %(message)s')
-
             # Read decrypted data from JSON and write it to the QC directory
             uuid_data = spark.read.json(self['Paths']['uuid_output_path'])
             uuid_data.write.mode("append").json(self['Paths']['qc'])

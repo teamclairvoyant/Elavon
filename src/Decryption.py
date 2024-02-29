@@ -1,49 +1,48 @@
 import json
-import os
-from datetime import datetime
 
 from cryptography.fernet import Fernet
-import logging
+from pyspark.sql import SparkSession
+import pandas as pd
+import os
+os.environ['HADOOP_HOME'] = 'C:\\hadoop-3.3.6'
+
 
 class DecryptionDriver:
     """Class for Decrypting the file"""
 
     def __init__(self, spark_session):
         self.spark = spark_session
-        self.logger = logging.getLogger(__name__)
 
-    def decrypt_and_read_data(self):
+    def decrypt_data(self, spark):
         try:
-            # Set up logging
-            log_filename = os.path.join(self['Paths']['log'],
-                                        f"log_decryption_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.txt")
-            logging.basicConfig(filename=log_filename, level=logging.INFO,
-                                format='%(asctime)s - %(levelname)s - %(message)s')
-
-            key_file = self['Paths']['key_file']
+            # Load the encryption key
+            key_file = 'mykey.key'  # Replace with the actual path
             with open(key_file, 'rb') as mykey:
                 key = mykey.read()
 
+            # Create a Fernet object with the key
             f = Fernet(key)
 
-            encrypted_file_path = self['Paths']['encrypted_file']
-            with open(encrypted_file_path, 'rb') as encrypted_file:
-                encrypted_data = encrypted_file.read()
+            # Load the encrypted data
+            encrypted_file_path = self['Paths']['encrypted_file']  # Replace with the actual path
+            encrypted_data = spark.read.text(encrypted_file_path).first()[0]
 
-            decrypted = f.decrypt(encrypted_data)
-            decrypted_data = json.loads(decrypted)
+            # Decrypt the data
+            decrypted_json = f.decrypt(encrypted_data.encode()).decode()  #str
+            #print("-------------")
+            #print(type(decrypted_json))
+            #return decrypted_json
 
-            decrypted_output_file_path = self['Paths']['decrypted_output_file']
-            with open(decrypted_output_file_path, 'w') as decrypted_output_file:
-                json.dump(decrypted_data, decrypted_output_file)
+            #print(type(decrypted_json))
 
-            logging.info("Decrypted data saved successfully.")
+            # Load JSON using json.loads
+            decrypted_data = json.loads(decrypted_json)
+
+            return decrypted_data
+
+            # Show the decrypted data
+            #decrypted_df.show()
 
         except Exception as e:
-            logging.error(f"Error during decryption: {str(e)}")
+            print(f"Error occurred: {str(e)}")
 
-# Example usage:
-# Assuming you have a SparkSession created, you can instantiate DecryptionDriver like this:
-# decryption_driver = DecryptionDriver(spark_session)
-# get_config_details = {'Paths': {'log': 'logs', 'key_file': 'key.key', 'encrypted_file': 'encrypted_data.bin', 'decrypted_output_file': 'decrypted_data.json'}}
-# decryption_driver.decrypt_and_read_data(get_config_details)

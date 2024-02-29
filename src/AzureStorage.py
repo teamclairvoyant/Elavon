@@ -8,6 +8,10 @@ class AdlsUpload:
         self.spark = spark_session
 
     def upload_files_to_blob_storage(self):
+        """
+        dgwgdwhdbdsdb
+        :return:
+        """
         def upload_to_blob_storage(file_path, file_name):
             try:
                 blob_service_client = BlobServiceClient.from_connection_string(self['azure_storage']['connection_string'])

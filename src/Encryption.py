@@ -11,12 +11,12 @@ class EncryptionDriver:
         self.spark = spark_session
 
     def encrypt_data(self, spark):
+        """
+        sdjsdjsbfksnkdsn
+        :param spark:
+        :return:
+        """
         try:
-            # Set up logging
-            log_filename = os.path.join(self['Paths']['log'],
-                                        f"log_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.txt")
-            logging.basicConfig(filename=log_filename, level=logging.INFO,
-                                format='%(asctime)s - %(levelname)s - %(message)s')
 
             # Generate or load encryption key
             key_file = self['Paths']['key_file']

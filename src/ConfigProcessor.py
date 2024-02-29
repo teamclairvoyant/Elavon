@@ -8,7 +8,7 @@ def get_config_details():
     config = configparser.ConfigParser()
 
     # Reading the configuration file located at the specified path
-    config.read('C:\\Users\\RAKI\\PycharmProjects\\sparkTestCases\\Spring-Pyspark-Framework\\config\\config.ini')
+    config.read('C:\\Users\\Prasad\\PycharmProjects\\pythonProject\\visa\\Spring-Pyspark-Framework\\Config\\config.ini')
 
     # Returning the ConfigParser object containing configuration details
     return config
