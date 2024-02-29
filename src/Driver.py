@@ -12,7 +12,7 @@ from ConfigProcessor import get_config_details
 import time
 
 # Create the output directory if it doesn't exist
-output_directory = "C:\\Users\\Prasad\\PycharmProjects\\pythonProject\\visa\\Spring-Pyspark-Framework\\log"
+output_directory = "C:\\Users\\RAKI\\Desktop\\Spring-Pyspark-Framework\\log\\"
 
 # Set up the logger
 log_file_path = os.path.join(output_directory, f"log_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.txt")
@@ -44,7 +44,8 @@ if __name__ == "__main__":
         spark = data_processing.create_spark_session()
 
         # Step 4: Encryption
-        EncryptionDriver.encrypt_data(conf, spark)
+        ED=EncryptionDriver()
+        ED.encrypt_data(conf, spark)
 
         # Step 5: Decryption
         decrypted_data = DecryptionDriver.decrypt_data(conf, spark)
@@ -59,7 +60,8 @@ if __name__ == "__main__":
         QualityCheck.perform_qc(conf, spark)
 
         # Step 9: ADLS Upload
-        AdlsUpload.upload_files_to_blob_storage(conf)
+        Ad=AdlsUpload()
+        Ad.upload_files_to_blob_storage(conf)
         end_time = time.time()
         execution_time = end_time - start_time
         print(f"Execution time: {execution_time} seconds")

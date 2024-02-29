@@ -7,10 +7,9 @@ from datetime import datetime
 class EncryptionDriver:
     """Class for Encrypting the file"""
 
-    def __init__(self, spark_session):
-        self.spark = spark_session
-
-    def encrypt_data(self, spark):
+    def __init__(self):
+        pass
+    def encrypt_data(self, conf,spark):
         """
         sdjsdjsbfksnkdsn
         :param spark:
@@ -19,7 +18,7 @@ class EncryptionDriver:
         try:
 
             # Generate or load encryption key
-            key_file = self['Paths']['key_file']
+            key_file = conf['Paths']['key_file']
             if not os.path.exists(key_file):
                 key = Fernet.generate_key()
                 with open(key_file, 'wb') as mykey:
@@ -32,7 +31,7 @@ class EncryptionDriver:
             f = Fernet(key)
 
             # Read CSV file using Spark
-            csv_file = self['Paths']['csv_file']
+            csv_file = conf['Paths']['csv_file']
             original_df = spark.read.format("csv").option("header", "true").load(csv_file)
 
             # Convert Spark DataFrame to Pandas DataFrame
@@ -45,7 +44,7 @@ class EncryptionDriver:
             encrypted = f.encrypt(original_json.encode())
 
             # Save the encrypted data to a file
-            encrypted_file_path = self['Paths']['encrypted_file']
+            encrypted_file_path = conf['Paths']['encrypted_file']
             with open(encrypted_file_path, 'wb') as encrypted_file:
                 encrypted_file.write(encrypted)
 
