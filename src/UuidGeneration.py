@@ -38,7 +38,7 @@ class IdDriver:
             output_path = os.path.join(conf['Paths']['uuid_output_path'])
 
             # You can change the file format and options according to your requirement
-            df_with_uuid.coalesce(2).write.mode("overwrite").json(output_path)
+            df_with_uuid.coalesce(1).write.mode("overwrite").json(output_path)
 
             logging.info(f"DataFrame with UUID saved to: {output_path}")
 

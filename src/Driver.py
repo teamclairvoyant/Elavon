@@ -57,6 +57,7 @@ if __name__ == "__main__":
 
         # Step 6: Hashing
         HV = HashingDriver
+
         hashed_values = HV.hashing(conf,spark)
 
         # Step 7: UUID Generation
@@ -64,8 +65,8 @@ if __name__ == "__main__":
         ID.process_data_uuid(conf, hashed_values)
 
         # Step 8: Quality Check
-        #QC = QualityCheck
-        #QC.perform_qc(conf, spark)
+        QC = QualityCheck
+        QC.perform_qc(conf, spark)
 
         # Step 9: ADLS Upload
         Ad = AdlsUpload

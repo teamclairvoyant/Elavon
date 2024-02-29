@@ -26,7 +26,7 @@ class QualityCheck:
         try:
             # Read decrypted data from JSON and write it to the QC directory
             uuid_data = spark.read.json(self['Paths']['uuid_output_path'])
-            uuid_data.write.mode("append").json(self['Paths']['qc'])
+            #uuid_data.write.mode("append").json(self['Paths']['qc'])
 
             # Function to calculate MD5 hash for a file
             def calculate_md5(file_path):
@@ -55,7 +55,7 @@ class QualityCheck:
                 md5_hash, file_size = calculate_md5(file_path)
                 qc_data = f"{file_name} | {file_size} | {md5_hash}"
                 new_file_name = f"{file_name.split('.')[0]}_qc_data.txt"
-                new_file_path = os.path.join(self['Paths']['qc'], new_file_name)
+                new_file_path = os.path.join(self['Paths']['uuid_output_path'], new_file_name)
 
                 # Writing the QC data to a separate file
                 with open(new_file_path, 'w') as qc_file:
