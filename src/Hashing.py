@@ -1,8 +1,8 @@
-import json
-import logging
 import time
 import requests
+import logging
 from pyspark.sql.functions import col
+
 
 class HashingDriver:
     """Class for Encrypting the file"""
@@ -17,7 +17,7 @@ class HashingDriver:
         self.spark = spark_session
 
     @staticmethod
-    def hashing(conf,spark):
+    def hashing(conf, spark):
         """
         Hashes specified columns of a DataFrame in batches using a remote API.
 
@@ -100,4 +100,3 @@ class HashingDriver:
                 return joined_df
         except Exception as e:
             (logging.error(f"Error occurred: {str(e)}"))
-            # return joined_df

@@ -1,8 +1,7 @@
-from cryptography.fernet import Fernet
 import os
 import logging
-from datetime import datetime
-from pyspark.sql import SparkSession
+from cryptography.fernet import Fernet
+
 
 class EncryptionDriver:
     """
@@ -26,7 +25,7 @@ class EncryptionDriver:
         """
         self.spark = spark_session
 
-    def encrypt_data(conf,spark):
+    def encrypt_data(self,conf,spark):
         """
         Encrypts data from a CSV file using Fernet encryption and saves the encrypted data to a file.
 

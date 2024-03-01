@@ -1,18 +1,19 @@
-import logging
 import os
+import logging
 from datetime import datetime
+import time
+from pyspark.sql import SparkSession
 from Encryption import EncryptionDriver
 from Decryption import DecryptionDriver
 from Hashing import HashingDriver
 from UuidGeneration import IdDriver
 from QualityCheck import QualityCheck
 from AzureStorage import AdlsUpload
-from pyspark.sql import SparkSession
 from ConfigProcessor import get_config_details
-import time
 
 # Create the output directory if it doesn't exist
-output_directory =  'C:\\Users\\Prasad\\PycharmProjects\\pythonProject\\Pyspark\\visa_pyspark\\log'
+
+output_directory = get_config_details()['Paths']['log']
 
 # Set up the logger
 log_file_path = os.path.join(output_directory, f"log_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.txt")
@@ -49,7 +50,7 @@ if __name__ == "__main__":
 
         # Step 4: Encryption
         ED = EncryptionDriver
-        ED.encrypt_data(conf,spark)
+        ED.encrypt_data(conf, spark)
 
         # Step 5: Decryption
         DE = DecryptionDriver
@@ -58,7 +59,7 @@ if __name__ == "__main__":
         # Step 6: Hashing
         HV = HashingDriver
 
-        hashed_values = HV.hashing(conf,spark)
+        hashed_values = HV.hashing(conf, spark)
 
         # Step 7: UUID Generation
         ID = IdDriver
@@ -66,7 +67,7 @@ if __name__ == "__main__":
 
         # Step 8: Quality Check
         QC = QualityCheck
-        QC.perform_qc(conf, spark)
+        QC.perform_qc(conf)
 
         # Step 9: ADLS Upload
         Ad = AdlsUpload

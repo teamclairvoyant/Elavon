@@ -1,7 +1,8 @@
-from pyspark.sql.functions import *
 import os
 import logging
-import uuid  # Import the uuid library
+import uuid
+from pyspark.sql.functions import *
+  # Import the uuid library
 
 from pyspark.sql import SparkSession
 
@@ -20,7 +21,7 @@ class IdDriver:
                 :param spark_session: The SparkSession instance.
         """
 
-    def process_data_uuid(conf, hashed_values):
+    def process_data_uuid(slef,conf, hashed_values):
         """
                 Process DataFrame by adding a UUID column and save it to a local file in JSON format.
 

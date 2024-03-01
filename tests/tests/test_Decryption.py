@@ -7,7 +7,7 @@ from src.ConfigProcessor import get_config_details
 class TestDecryptionDriver(TestCase):
 
     def test_encrypt_data(self):
-        ed = DecryptionDriver
+        #ed = DecryptionDriver
         self.assertTrue(os.path.exists('C:\\Users\\Prasad\\Pictures\\visa\\decrypted_data.json'))
 
     def test_file_sizes_match(self):

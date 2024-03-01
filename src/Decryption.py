@@ -1,8 +1,7 @@
-import json
-import os
-from datetime import datetime
-from cryptography.fernet import Fernet
 import logging
+import json
+from cryptography.fernet import Fernet
+
 
 class DecryptionDriver:
     """Class for Decrypting and Reading Encrypted Data"""
@@ -10,13 +9,12 @@ class DecryptionDriver:
     def __init__(self, spark_session):
         """
         Initialize the DecryptionDriver.
-
         Parameters:
             - spark_session (pyspark.sql.SparkSession): The Spark session object.
         """
         self.spark = spark_session
 
-    def decrypt_and_read_data(conf):
+    def decrypt_and_read_data(self, conf):
         """
         Decrypts the encrypted data and saves it to a JSON file.
 
@@ -51,4 +49,3 @@ class DecryptionDriver:
 
         except Exception as e:
             logging.error(f"Error during decryption: {str(e)}")
-

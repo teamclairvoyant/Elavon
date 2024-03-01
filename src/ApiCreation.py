@@ -6,6 +6,11 @@ app = Flask(__name__)
 
 @app.route('/calculate_hash', methods=['POST'])
 def calculate_hash():
+    """
+    calculating hashing value for given column
+    :return:
+    hashed value
+    """
     try:
         # Get data from the request
         data = request.json.get('data_batch')
