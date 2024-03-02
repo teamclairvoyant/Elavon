@@ -5,7 +5,7 @@ from pyspark.sql.functions import col
 
 
 class HashingDriver:
-    """Class for Encrypting the file"""
+    """Class for Hashing the file"""
 
     def __init__(self, spark_session):
         """
