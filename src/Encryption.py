@@ -37,14 +37,10 @@ class EncryptionDriver:
         """
         try:
             # Generate or load encryption key
-            key_file = conf['Paths']['key_file']
-            if not os.path.exists(key_file):
-                key = Fernet.generate_key()
-                with open(key_file, 'wb') as mykey:
-                    mykey.write(key)
-            else:
-                with open(key_file, 'rb') as mykey:
-                    key = mykey.read()
+            key = Fernet.generate_key()
+            key_file = 'C:\\Users\\Prasad\\Pictures\\visa\\mykey.key'
+            with open(key_file, 'wb') as mykey:
+                mykey.write(key)
 
             # Create a Fernet object with the key
             f = Fernet(key)

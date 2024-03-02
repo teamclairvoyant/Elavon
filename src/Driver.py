@@ -49,28 +49,28 @@ if __name__ == "__main__":
         spark = data_processing.create_spark_session()
 
         # Step 4: Encryption
-        ED = EncryptionDriver
+        ED = EncryptionDriver(spark)
         ED.encrypt_data(conf, spark)
 
         # Step 5: Decryption
-        DE = DecryptionDriver
+        DE = DecryptionDriver(spark)
         DE.decrypt_and_read_data(conf)
 
         # Step 6: Hashing
-        HV = HashingDriver
+        HV = HashingDriver(spark)
 
         hashed_values = HV.hashing(conf, spark)
 
         # Step 7: UUID Generation
-        ID = IdDriver
+        ID = IdDriver(spark)
         ID.process_data_uuid(conf, hashed_values)
 
         # Step 8: Quality Check
-        QC = QualityCheck
+        QC = QualityCheck(conf)
         QC.perform_qc(conf)
 
         # Step 9: ADLS Upload
-        Ad = AdlsUpload
+        Ad = AdlsUpload(conf)
         Ad.upload_files_to_blob_storage(conf)
 
         end_time = time.time()

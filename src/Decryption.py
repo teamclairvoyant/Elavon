@@ -28,7 +28,7 @@ class DecryptionDriver:
             None
         """
         try:
-            key_file = conf['Paths']['key_file']
+            key_file = 'C:\\Users\\Prasad\\Pictures\\visa\\mykey.key'
             with open(key_file, 'rb') as mykey:
                 key = mykey.read()
 
