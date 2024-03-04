@@ -1,0 +1,4 @@
+type Query {
+    person: [Person]
+    personById(id:String!):Person
+}
