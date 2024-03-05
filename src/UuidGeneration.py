@@ -2,7 +2,7 @@ import os
 import logging
 import uuid
 from pyspark.sql.functions import *
-  # Import the uuid library
+# Import the uuid library
 
 from pyspark.sql import SparkSession
 
@@ -21,7 +21,7 @@ class IdDriver:
                 :param spark_session: The SparkSession instance.
         """
 
-    def process_data_uuid(slef,conf, hashed_values):
+    def process_data_uuid(self, conf, hashed_values):
         """
                 Process DataFrame by adding a UUID column and save it to a local file in JSON format.
 
@@ -30,10 +30,12 @@ class IdDriver:
         """
         try:
             # Generate a new column with unique identifiers using uuid.uuid4()
-            #decrypted_df = spark.createDataFrame(decrypted)
+            # decrypted_df = spark.createDataFrame(decrypted)
             df_with_uuid = hashed_values.withColumn("uuid_column",
                                                     sha2(concat(col(conf['Paths']['uuid_column']),
                                                                 lit(str(uuid.uuid4()))), 256))
+
+            return df_with_uuid
 
             # Save the DataFrame to a local file path in JSON format using Spark's write operation
             output_path = os.path.join(conf['Paths']['uuid_output_path'])

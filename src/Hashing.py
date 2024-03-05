@@ -1,44 +1,20 @@
+import logging
 import time
 import requests
-import logging
 from pyspark.sql.functions import col
 
 
+# Define the hashing function
 class HashingDriver:
-    """Class for Hashing the file"""
+    """Class for Encrypting the file"""
 
     def __init__(self, spark_session):
-        """
-        Initializes the HashingDriver.
-
-        Parameters:
-        - spark_session (pyspark.sql.SparkSession): Spark session object.
-        """
         self.spark = spark_session
 
     @staticmethod
-    def hashing(conf, spark):
-        """
-        Hashes specified columns of a DataFrame in batches using a remote API.
-
-        Parameters:
-        - spark (pyspark.sql.SparkSession): Spark session object.
-
-        Returns:
-        - pyspark.sql.DataFrame: DataFrame with hashed values joined back to the original DataFrame.
-        """
+    def hashing(spark, decrypted_data):
         try:
             def send_data_and_get_hash(data_batch, columns_to_hash):
-                """
-                Sends data batch to a remote API for hashing.
-
-                Parameters:
-                - data_batch (list): List of dictionaries representing a batch of data.
-                - columns_to_hash (list): List of column names to be hashed.
-
-                Returns:
-                - str: Hashed value.
-                """
                 start_time = time.time()
                 api_url = 'http://localhost:5000/calculate_hash'
                 payload = {'data_batch': data_batch, 'columns_to_hash': columns_to_hash}
@@ -55,13 +31,16 @@ class HashingDriver:
                     raise Exception('Unexpected response from the server')
 
             # Read JSON data into DataFrame
-            json_file_path = conf['Paths']['decrypted_output_file']
-            df = spark.read.option("multiline", "true").json(json_file_path)
+
+            # json_file_path = self['Paths']['decrypted_output_file']
+            # print(decrypted_data)
+            #df = spark.read.option("multiline", "true").json(decrypted_data)
+            df = spark.createDataFrame(decrypted_data)
             print(df)
             df.show()
 
             # Define batch size
-            batch_size = 20000
+            batch_size = 40000
 
             # Calculate the number of batches
             num_batches = (df.count() // batch_size) + (1 if df.count() % batch_size != 0 else 0)
@@ -97,6 +76,9 @@ class HashingDriver:
                 joined_df = df.join(sampledf, "ID", "inner")
                 print(joined_df)
                 print(type(joined_df))
-                return joined_df
+
+            return joined_df
+
+                # return joined_df
         except Exception as e:
-            (logging.error(f"Error occurred: {str(e)}"))
+            (logging.error(f"Error in processing: {str(e)}"))

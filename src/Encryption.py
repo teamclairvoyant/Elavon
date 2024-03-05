@@ -2,7 +2,6 @@ import os
 import logging
 from cryptography.fernet import Fernet
 
-
 class EncryptionDriver:
     """
     Class for encrypting data using Fernet encryption.
@@ -12,8 +11,6 @@ class EncryptionDriver:
 
     Attributes:
         spark (pyspark.sql.SparkSession): The Spark session object.
-
-
     """
 
     def __init__(self, spark_session):
@@ -25,12 +22,15 @@ class EncryptionDriver:
         """
         self.spark = spark_session
 
-    def encrypt_data(self,conf,spark):
+    def encrypt_data(self, conf, spark):
         """
         Encrypts data from a CSV file using Fernet encryption and saves the encrypted data to a file.
 
         Parameters:
             config_details (dict): A dictionary containing file paths and configurations.
+
+        Returns:
+            bytes: The encrypted data.
 
         Raises:
             Exception: If an error occurs during the encryption process.
@@ -49,14 +49,15 @@ class EncryptionDriver:
             csv_file = conf['Paths']['csv_file']
             original_df = spark.read.format("csv").option("header", "true").load(csv_file)
 
-            # Convert Spark DataFrame to Pandas DataFrame
-            original_pandas = original_df.toPandas()
+            # Convert Spark DataFrame to JSON
+            original_json = original_df.toJSON().collect()
 
-            # Convert Pandas DataFrame to JSON
-            original_json = original_pandas.to_json(orient='records')
+            # Concatenate JSON strings into a single string
+            original_json_str = "\n".join(original_json)
 
             # Encrypt the JSON data
-            encrypted = f.encrypt(original_json.encode())
+            encrypted = f.encrypt(original_json_str.encode())
+            print(type(encrypted))
 
             # Save the encrypted data to a file
             encrypted_file_path = conf['Paths']['encrypted_file']
@@ -65,6 +66,9 @@ class EncryptionDriver:
 
             # Log the information
             logging.info(f"Encrypted data saved successfully at: {encrypted_file_path}")
+
+            return encrypted
+
 
         except Exception as e:
             logging.error(f"Error occurred: {str(e)}")

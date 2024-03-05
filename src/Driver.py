@@ -17,7 +17,7 @@ output_directory = get_config_details()['Paths']['log']
 
 # Set up the logger
 log_file_path = os.path.join(output_directory, f"log_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.txt")
-logging.basicConfig(filename=log_file_path, level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename=log_file_path, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 class DataProcessingDriver:
@@ -50,24 +50,21 @@ if __name__ == "__main__":
 
         # Step 4: Encryption
         ED = EncryptionDriver(spark)
-        ED.encrypt_data(conf, spark)
+        encrypted = ED.encrypt_data(conf, spark)
 
         # Step 5: Decryption
-        DE = DecryptionDriver(spark)
-        DE.decrypt_and_read_data(conf)
+        decrypted_data = DecryptionDriver(spark).decrypt_data(spark, encrypted)
 
         # Step 6: Hashing
-        HV = HashingDriver(spark)
-
-        hashed_values = HV.hashing(conf, spark)
+        hashed_values = HashingDriver(spark).hashing(spark, decrypted_data)
 
         # Step 7: UUID Generation
         ID = IdDriver(spark)
-        ID.process_data_uuid(conf, hashed_values)
+        df_with_uuid = ID.process_data_uuid(conf, hashed_values)
 
         # Step 8: Quality Check
-        QC = QualityCheck(conf)
-        QC.perform_qc(conf)
+        QC = QualityCheck(spark)
+        QC.quality_check(df_with_uuid)
 
         # Step 9: ADLS Upload
         Ad = AdlsUpload(conf)
@@ -78,5 +75,5 @@ if __name__ == "__main__":
         print(f"Execution time: {execution_time} seconds")
 
     except Exception as e:
-        logging.error(f"An error occurred: {str(e)}")
+        logging.INFO(f"An error occurred: {str(e)}")
         raise  # Re-raise the exception after logging

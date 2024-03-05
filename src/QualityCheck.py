@@ -1,7 +1,5 @@
-import os
-import logging
 import hashlib
-
+import logging
 
 
 class QualityCheck:
@@ -16,60 +14,34 @@ class QualityCheck:
         """
         self.spark = spark_session
 
-    def perform_qc(self,conf):
+    def quality_check(self,df_with_uuid):
         """
-                Perform quality checks on decrypted data.
+            Perform quality checks on the DataFrame.
 
-                Parameters:
-                - spark (SparkSession): The Spark session object.
-        """
+            :param df_with_uuid: DataFrame with UUID column.
+            """
+
         try:
-            # Read decrypted data from JSON and write it to the QC directory
-            #uuid_data = spark.read.json(conf['Paths']['uuid_output_path'])
-            #uuid_data.write.mode("append").json(conf['Paths']['qc'])
+            # Check count of rows
+            count_rows = len(df_with_uuid)
+            print(count_rows)
+            logging.info(f"Number of rows in DataFrame: {count_rows}")
 
-            # Function to calculate MD5 hash for a file
-            def calculate_md5(file_path):
-                """
-                    Calculate MD5 hash for a given file.
+            # Calculate MD5 checksum
+            md5_hash = hashlib.md5()
+            # Converting each row to a string and updating the hash
+            for row in df_with_uuid.collect():
+                md5_hash.update(str(row.asDict()).encode('utf-8'))
 
-                    Parameters:
-                    - file_path (str): The path to the file.
-
-                     Returns:
-                    - md5_hash (str): The MD5 hash of the file.
-                    - file_size (int): The size of the file in bytes.
-                """
-                with open(file_path, 'rb') as file_to_check:
-                    data = file_to_check.read()
-                    count = len(data)
-                    md5_returned = hashlib.md5(data).hexdigest()
-                    return md5_returned, count
-
-            # Filter only .json files from the directory
-            json_files = [i for i in os.listdir(conf['Paths']['uuid_output_path']) if i.endswith('.json')]
-
-            # Iterate through each .json file, calculate MD5, and save QC data
-            for file_name in json_files:
-                file_path = os.path.join(conf['Paths']['uuid_output_path'], file_name)
-                md5_hash, file_size = calculate_md5(file_path)
-                qc_data = f"{file_name} | {file_size} | {md5_hash}"
-                new_file_name = f"{file_name.split('.')[0]}_qc_data.txt"
-                new_file_path = os.path.join(conf['Paths']['uuid_output_path'], new_file_name)
-
-                # Writing the QC data to a separate file
-                with open(new_file_path, 'w') as qc_file:
-                    qc_file.write(qc_data + '\n')
-
-                # Log the location of qc_data.txt
-                logging.info(f"QC data saved at: {new_file_path}")
+            md5_checksum = md5_hash.hexdigest()
+            print(md5_checksum)
+            logging.info(f"MD5 checksum of DataFrame: {md5_checksum}")
 
         except Exception as e:
-            # Handle any exception and log the error
-            logging.error(f"An error occurred: {str(e)}")
+            logging.error(f"Error during quality check: {str(e)}")
 
 
-# Example usage:
-# spark_session = ...  # Initialize your Spark session
-# qc = QualityCheck(spark_session)
-# qc.perform_qc(get_config_details, spark_session)
+        # Example usage:
+        # Assuming you have already created a SparkSession
+        # spark = SparkSession.builder.appName("YourAppName").getOrCreate()
+
