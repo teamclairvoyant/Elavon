@@ -49,13 +49,8 @@ class DecryptionDriver:
             decrypted_data_str = f.decrypt(encrypted_data).decode()
             decrypted_data_list = [json.loads(line) for line in decrypted_data_str.split('\n') if line]
 
-
             return decrypted_data_list
 
         except Exception as e:
             logging.error(f"Error occurred during decryption: {str(e)}")
             raise
-
-
-
-
