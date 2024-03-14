@@ -1,8 +1,7 @@
 import logging
 import json
 from cryptography.fernet import Fernet
-from pyspark.sql import SparkSession
-from pyspark.sql import Row
+
 
 class DecryptionDriver:
     """
@@ -50,13 +49,6 @@ class DecryptionDriver:
             decrypted_data_str = f.decrypt(encrypted_data).decode()
             decrypted_data_list = [json.loads(line) for line in decrypted_data_str.split('\n') if line]
 
-            # Split the decrypted data into lines
-            #decrypted_data_lines = decrypted_data_str.split('\n')
-
-            # Convert the decrypted data to a Spark DataFrame
-            #decrypted_data_rows = [Row(json_data=line) for line in decrypted_data_lines]
-            #print(type(decrypted_data_rows))
-            #decrypted_df = spark.createDataFrame(decrypted_data_rows)
 
             return decrypted_data_list
 
@@ -64,9 +56,6 @@ class DecryptionDriver:
             logging.error(f"Error occurred during decryption: {str(e)}")
             raise
 
-# Example usage:
-# spark = ...  # create SparkSession
-# encryption_driver = EncryptionDriver(spark)
-# decryption_driver = DecryptionDriver(spark)
+
 
 

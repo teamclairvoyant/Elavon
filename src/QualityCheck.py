@@ -23,7 +23,7 @@ class QualityCheck:
 
         try:
             # Check count of rows
-            count_rows = len(df_with_uuid)
+            count_rows = df_with_uuid.count()
             print(count_rows)
             logging.info(f"Number of rows in DataFrame: {count_rows}")
 

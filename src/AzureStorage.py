@@ -21,8 +21,9 @@ class AdlsUpload:
         """
         self.spark = spark_session
 
-    def upload_files_to_blob_storage(self,conf):
+    def upload_files_to_blob_storage(self, conf):
         """Upload CSV, JSON, and TXT files to Azure Blob Storage."""
+
         def upload_to_blob_storage(file_path, file_name):
             """Upload a file to Azure Blob Storage.
 
@@ -34,11 +35,13 @@ class AdlsUpload:
                 Exception: If an error occurs during the upload process.
             """
             try:
-                blob_service_client = BlobServiceClient.from_connection_string(conf['azure_storage']['connection_string'])
+                blob_service_client = BlobServiceClient.from_connection_string(
+                    conf['azure_storage']['connection_string'])
                 container_name = conf['azure_storage']['container_name']
                 adls_folder_path = conf['folders']['adls_folder_path']
 
-                blob_client = blob_service_client.get_blob_client(container=container_name, blob=os.path.join(adls_folder_path, file_name))
+                blob_client = blob_service_client.get_blob_client(container=container_name,
+                                                                  blob=os.path.join(adls_folder_path, file_name))
 
                 # Check if the blob already exists
                 if blob_client.exists():
