@@ -1,0 +1,78 @@
+{
+    "ruleset_id": 21783846,
+    "name": "employee_data_quality",
+    "description": "ruleset to verify data quality of employee data",
+  	"notification_preferences": [
+		"EMAIL"
+	],
+    "rules" : [
+      {
+        "sequence": 1,
+        "status": "active",
+        "rule_details": {
+          "id": 31783848,
+          "name": "employee.emp_id.sql_validator",
+          "description": "rule to check if minimum salary is 50000",
+          "dq_metric": "VALIDITY",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783846",
+              "entity_name": "employee",
+              "entity_physical_name": "employee",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "FILE",
+              "entity_sub_type": "CSV",
+              "primary_key": "emp_id",
+              "properties": [
+                {
+                  "key": "PATH",
+                  "value": "data\\input\\csv\\employee.csv",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "properties": [
+               {
+                 "key":"SOURCE_QUERY" ,
+                 "value":"select emp_id from employee where salary > 2000"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"emp_id > 100"
+               },
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"salary"
+               }
+          ],
+          "template": {
+             "id": 28,
+             "name": "SQL_VALIDATOR",
+             "description": "apply any sql rule on source entity",
+             "properties": [
+               {
+                 "key":"SOURCE_QUERY" ,
+                 "type":"VARIABLE" ,
+                 "mandatory": true,
+                 "description": "source query to apply rule on source entity"
+
+               },
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+                {
+                    "mandatory": true,
+                    "description": "Condition to be get data on which rule needs to applied",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                }
+             ]
+          }
+        }
+      }
+    ]
+}

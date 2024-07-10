@@ -1,0 +1,621 @@
+{
+    "ruleset_id": 21783847,
+    "name": "data quality checks on employee and payments data",
+    "description": "ruleset to verify data quality of employee and payments data",
+    "notification_preferences": [
+        "EMAIL"
+    ],
+    "rules": [
+        {
+            "sequence": 1,
+            "status": "active",
+            "rule_details": {
+                "id": 31783848,
+                "name": "employee.salary.sql_validator",
+                "description": "rule to check if maximum salary is 2000",
+                "dq_metric": "VALIDITY",
+                "data_entity_associations": [
+                    {
+                        "entity_id": "41783846",
+                        "entity_name": "employee",
+                        "entity_physical_name": "employee",
+                        "entity_behaviour": "SOURCE",
+                        "entity_type": "FILE",
+                        "entity_sub_type": "CSV",
+                        "primary_key": "emp_id",
+                        "properties": [
+                            {
+                                "key": "PATH",
+                                "value": "gs://data-comparator-demo/data/employee/employee_with_schema.csv",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                ],
+                "properties": [
+                    {
+                        "key": "SOURCE_QUERY",
+                        "value": "select emp_id from employee where salary > 2000"
+                    },
+                    {
+                        "key": "FILTER_CONDITIONS",
+                        "value": "emp_id > 100"
+                    },
+                    {
+                        "key": "BASE_CRITERIA_COLUMN",
+                        "value": "salary"
+                    }
+                ],
+                "template": {
+                    "id": 1,
+                    "name": "SQL_VALIDATOR",
+                    "description": "apply any sql rule on source entity",
+                    "properties": [
+                        {
+                            "key": "SOURCE_QUERY",
+                            "type": "VARIABLE",
+                            "mandatory": true,
+                            "description": "source query to apply rule on source entity"
+                        },
+                        {
+                            "mandatory": true,
+                            "description": "Column on which null check needs to be performed",
+                            "type": "VARIABLE",
+                            "key": "BASE_CRITERIA_COLUMN"
+                        },
+                        {
+                            "mandatory": true,
+                            "description": "Condition to be get data on which rule needs to applied",
+                            "type": "VARIABLE",
+                            "key": "FILTER_CONDITIONS"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "sequence": 2,
+            "status": "active",
+            "rule_details": {
+                "id": 12345671,
+                "name": "payments.transaction_date.sql_validator",
+                "description": "rule to check if transaction date is not future date",
+                "dq_metric": "VALIDITY",
+                "data_entity_associations": [
+                    {
+                        "entity_id": "41783847",
+                        "entity_name": "payments",
+                        "entity_physical_name": "payments",
+                        "entity_behaviour": "SOURCE",
+                        "entity_type": "FILE",
+                        "entity_sub_type": "CSV",
+                        "primary_key": "Transaction_Identifier",
+                        "properties": [
+                            {
+                                "key": "PATH",
+                                "value": "gs://data-comparator-demo/data/payments/Payment_target_data.csv",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                ],
+                "properties": [
+                    {
+                        "key": "SOURCE_QUERY",
+                        "value": "select Transaction_Identifier  from  payments where Transaction_Date > Current_Date()"
+                    },
+                    {
+                        "key": "FILTER_CONDITIONS",
+                        "value": "1=1"
+                    },
+                    {
+                        "key": "BASE_CRITERIA_COLUMN",
+                        "value": "Transaction_Date"
+                    }
+                ],
+                "template": {
+                    "id": 1,
+                    "name": "SQL_VALIDATOR",
+                    "description": "apply any sql rule on source entity",
+                    "properties": [
+                        {
+                            "key": "SOURCE_QUERY",
+                            "type": "VARIABLE",
+                            "mandatory": true,
+                            "description": "source query to apply rule on source entity"
+                        },
+                        {
+                            "mandatory": true,
+                            "description": "Column on which null check needs to be performed",
+                            "type": "VARIABLE",
+                            "key": "BASE_CRITERIA_COLUMN"
+                        },
+                        {
+                            "mandatory": true,
+                            "description": "Condition to be get data on which rule needs to applied",
+                            "type": "VARIABLE",
+                            "key": "FILTER_CONDITIONS"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "sequence": 3,
+            "status": "active",
+            "rule_details": {
+                "id": 12345672,
+                "name": "payments.cheque_number.sql_validator",
+                "description": "rule to check if cheque number is greater than 5 digits",
+                "dq_metric": "VALIDITY",
+                "data_entity_associations": [
+                    {
+                        "entity_id": "41783847",
+                        "entity_name": "payments",
+                        "entity_physical_name": "payments",
+                        "entity_behaviour": "SOURCE",
+                        "entity_type": "FILE",
+                        "entity_sub_type": "CSV",
+                        "primary_key": "Transaction_Identifier",
+                        "properties": [
+                            {
+                                "key": "PATH",
+                                "value": "gs://data-comparator-demo/data/payments/Payment_target_data.csv",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                ],
+                "properties": [
+                    {
+                        "key": "SOURCE_QUERY",
+                        "value": "select Transaction_Identifier  from  payments where length(cast (Cheque_Number as STRING))<6"
+                    },
+                    {
+                        "key": "FILTER_CONDITIONS",
+                        "value": "Payment_Method ='Cheque'"
+                    },
+                    {
+                        "key": "BASE_CRITERIA_COLUMN",
+                        "value": "Cheque_Number"
+                    }
+                ],
+                "template": {
+                    "id": 1,
+                    "name": "SQL_VALIDATOR",
+                    "description": "apply any sql rule on source entity",
+                    "properties": [
+                        {
+                            "key": "SOURCE_QUERY",
+                            "type": "VARIABLE",
+                            "mandatory": true,
+                            "description": "source query to apply rule on source entity"
+                        },
+                        {
+                            "mandatory": true,
+                            "description": "Column on which null check needs to be performed",
+                            "type": "VARIABLE",
+                            "key": "BASE_CRITERIA_COLUMN"
+                        },
+                        {
+                            "mandatory": true,
+                            "description": "Condition to be get data on which rule needs to applied",
+                            "type": "VARIABLE",
+                            "key": "FILTER_CONDITIONS"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "sequence": 4,
+            "status": "active",
+            "rule_details": {
+                "id": 12345675,
+                "name": "payments.Transaction_Identifier.sql_validator",
+                "description": "rule to check if Transaction Identifier is unique",
+                "dq_metric": "UNIQUENESS",
+                "data_entity_associations": [
+                    {
+                        "entity_id": "41783847",
+                        "entity_name": "payments",
+                        "entity_physical_name": "payments",
+                        "entity_behaviour": "SOURCE",
+                        "entity_type": "FILE",
+                        "entity_sub_type": "CSV",
+                        "primary_key": "Transaction_Identifier",
+                        "properties": [
+                            {
+                                "key": "PATH",
+                                "value": "gs://data-comparator-demo/data/payments/Payment_target_data.csv",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                ],
+                "properties": [
+                    {
+                        "key": "SOURCE_QUERY",
+                        "value": "select Transaction_Identifier  from  payments group by Transaction_Identifier having count(Transaction_Identifier) >1"
+                    },
+                    {
+                        "key": "FILTER_CONDITIONS",
+                        "value": "1=1"
+                    },
+                    {
+                        "key": "BASE_CRITERIA_COLUMN",
+                        "value": "Transaction_Identifier"
+                    }
+                ],
+                "template": {
+                    "id": 4,
+                    "name": "SQL_VALIDATOR",
+                    "description": "apply any sql rule on source entity",
+                    "properties": [
+                        {
+                            "key": "SOURCE_QUERY",
+                            "type": "VARIABLE",
+                            "mandatory": true,
+                            "description": "source query to apply rule on source entity"
+                        },
+                        {
+                            "mandatory": true,
+                            "description": "Column on which null check needs to be performed",
+                            "type": "VARIABLE",
+                            "key": "BASE_CRITERIA_COLUMN"
+                        },
+                        {
+                            "mandatory": true,
+                            "description": "Condition to be get data on which rule needs to applied",
+                            "type": "VARIABLE",
+                            "key": "FILTER_CONDITIONS"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "sequence": 5,
+            "status": "active",
+            "rule_details": {
+                "id": 12345676,
+                "name": "payments.Payment_Type.sql_validator",
+                "description": "rule to check if Payment Type is not wired for cash and cheque payment method",
+                "dq_metric": "ACCURACY",
+                "data_entity_associations": [
+                    {
+                        "entity_id": "41783847",
+                        "entity_name": "payments",
+                        "entity_physical_name": "payments",
+                        "entity_behaviour": "SOURCE",
+                        "entity_type": "FILE",
+                        "entity_sub_type": "CSV",
+                        "primary_key": "Transaction_Identifier",
+                        "properties": [
+                            {
+                                "key": "PATH",
+                                "value": "gs://data-comparator-demo/data/payments/Payment_target_data.csv",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                ],
+                "properties": [
+                    {
+                        "key": "SOURCE_QUERY",
+                        "value": "select Transaction_Identifier  from  payments where Payment_Type = 'Wired' and Payment_Method in ('Cash', 'Cheque')"
+                    },
+                    {
+                        "key": "FILTER_CONDITIONS",
+                        "value": "Payment_Method in ('Cash', 'Cheque')"
+                    },
+                    {
+                        "key": "BASE_CRITERIA_COLUMN",
+                        "value": "Payment_Type"
+                    }
+                ],
+                "template": {
+                    "id": 5,
+                    "name": "SQL_VALIDATOR",
+                    "description": "apply any sql rule on source entity",
+                    "properties": [
+                        {
+                            "key": "SOURCE_QUERY",
+                            "type": "VARIABLE",
+                            "mandatory": true,
+                            "description": "source query to apply rule on source entity"
+                        },
+                        {
+                            "mandatory": true,
+                            "description": "Column on which null check needs to be performed",
+                            "type": "VARIABLE",
+                            "key": "BASE_CRITERIA_COLUMN"
+                        },
+                        {
+                            "mandatory": true,
+                            "description": "Condition to be get data on which rule needs to applied",
+                            "type": "VARIABLE",
+                            "key": "FILTER_CONDITIONS"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "sequence": 6,
+            "status": "active",
+            "rule_details": {
+                "id": 31783846,
+                "name": "employee.name.null_check",
+                "description": "rule to verify emp name should not be null",
+                "dq_metric": "COMPLETENESS",
+                "data_entity_associations": [
+                    {
+                        "entity_id": "41783846",
+                        "entity_name": "employee",
+                        "entity_physical_name": "employee",
+                        "entity_behaviour": "SOURCE",
+                        "entity_type": "FILE",
+                        "entity_sub_type": "CSV",
+                        "primary_key": "emp_id",
+                        "properties": [
+                            {
+                                "key": "PATH",
+                                "value": "gs://data-comparator-demo/data/employee/employee_with_schema.csv",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                ],
+                "properties": [
+                    {
+                        "key": "BASE_CRITERIA_COLUMN",
+                        "value": "name"
+                    },
+                    {
+                        "key": "FILTER_CONDITIONS",
+                        "value": "emp_id > 100"
+                    }
+                ],
+                "template": {
+                    "id": 2,
+                    "name": "NULL_CHECK",
+                    "description": "check for null values",
+                    "properties": [
+                        {
+                            "mandatory": true,
+                            "description": "Column on which null check needs to be performed",
+                            "type": "VARIABLE",
+                            "key": "BASE_CRITERIA_COLUMN"
+                        },
+                        {
+                            "mandatory": true,
+                            "description": "Condition to be applied on the column",
+                            "type": "PREDEFINED",
+                            "key": "BASE_CRITERIA",
+                            "value": "{BASE_CRITERIA_COLUMN} IS NULL or trim(cast ({BASE_CRITERIA_COLUMN} as STRING))= ''"
+                        },
+                        {
+                            "mandatory": true,
+                            "description": "filter condition to be applied on the table",
+                            "type": "VARIABLE",
+                            "key": "FILTER_CONDITIONS"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "sequence": 7,
+            "status": "active",
+            "rule_details": {
+                "id": 12345673,
+                "name": "payments.transaction_date.null_check",
+                "description": "rule to verify transaction date should not be null",
+                "dq_metric": "COMPLETENESS",
+                "data_entity_associations": [
+                    {
+                        "entity_id": "41783847",
+                        "entity_name": "payments",
+                        "entity_physical_name": "payments",
+                        "entity_behaviour": "SOURCE",
+                        "entity_type": "FILE",
+                        "entity_sub_type": "CSV",
+                        "primary_key": "Transaction_Identifier",
+                        "properties": [
+                            {
+                                "key": "PATH",
+                                "value": "gs://data-comparator-demo/data/payments/Payment_target_data.csv",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                ],
+                "properties": [
+                    {
+                        "key": "BASE_CRITERIA_COLUMN",
+                        "value": "Transaction_Date"
+                    },
+                    {
+                        "key": "FILTER_CONDITIONS",
+                        "value": "1=1"
+                    }
+                ],
+                "template": {
+                    "id": 2,
+                    "name": "NULL_CHECK",
+                    "description": "check for null values",
+                    "properties": [
+                        {
+                            "mandatory": true,
+                            "description": "Column on which null check needs to be performed",
+                            "type": "VARIABLE",
+                            "key": "BASE_CRITERIA_COLUMN"
+                        },
+                        {
+                            "mandatory": true,
+                            "description": "Condition to be applied on the column",
+                            "type": "PREDEFINED",
+                            "key": "BASE_CRITERIA",
+                            "value": "{BASE_CRITERIA_COLUMN} IS NULL or trim(cast ({BASE_CRITERIA_COLUMN} as STRING))= ''"
+                        },
+                        {
+                            "mandatory": true,
+                            "description": "filter condition to be applied on the table",
+                            "type": "VARIABLE",
+                            "key": "FILTER_CONDITIONS"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "sequence": 8,
+            "status": "active",
+            "rule_details": {
+                "id": 12345674,
+                "name": "payments.cheque_number.null_check",
+                "description": "rule to verify cheque number should not be null",
+                "dq_metric": "COMPLETENESS",
+                "data_entity_associations": [
+                    {
+                        "entity_id": "41783847",
+                        "entity_name": "payments",
+                        "entity_physical_name": "payments",
+                        "entity_behaviour": "SOURCE",
+                        "entity_type": "FILE",
+                        "entity_sub_type": "CSV",
+                        "primary_key": "Transaction_Identifier",
+                        "properties": [
+                            {
+                                "key": "PATH",
+                                "value": "gs://data-comparator-demo/data/payments/Payment_target_data.csv",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                ],
+                "properties": [
+                    {
+                        "key": "BASE_CRITERIA_COLUMN",
+                        "value": "Cheque_Number"
+                    },
+                    {
+                        "key": "FILTER_CONDITIONS",
+                        "value": "Payment_Method ='Cheque'"
+                    }
+                ],
+                "template": {
+                    "id": 2,
+                    "name": "NULL_CHECK",
+                    "description": "check for null values",
+                    "properties": [
+                        {
+                            "mandatory": true,
+                            "description": "Column on which null check needs to be performed",
+                            "type": "VARIABLE",
+                            "key": "BASE_CRITERIA_COLUMN"
+                        },
+                        {
+                            "mandatory": true,
+                            "description": "Condition to be applied on the column",
+                            "type": "PREDEFINED",
+                            "key": "BASE_CRITERIA",
+                            "value": "{BASE_CRITERIA_COLUMN} IS NULL or trim(cast ({BASE_CRITERIA_COLUMN} as STRING))= ''"
+                        },
+                        {
+                            "mandatory": true,
+                            "description": "filter condition to be applied on the table",
+                            "type": "VARIABLE",
+                            "key": "FILTER_CONDITIONS"
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "sequence": 9,
+            "status": "active",
+            "rule_details": {
+                "id": 31783847,
+                "name": "employee.salary.range_check",
+                "description": "rule to validate if salary is in range 1000 to 3000",
+                "dq_metric": "ACCURACY",
+                "data_entity_associations": [
+                    {
+                        "entity_id": "41783846",
+                        "entity_name": "employee",
+                        "entity_physical_name": "employee",
+                        "entity_behaviour": "SOURCE",
+                        "entity_type": "FILE",
+                        "entity_sub_type": "CSV",
+                        "primary_key": "emp_id",
+                        "properties": [
+                            {
+                                "key": "PATH",
+                                "value": "gs://data-comparator-demo/data/employee/employee_with_schema.csv",
+                                "type": "string"
+                            }
+                        ]
+                    }
+                ],
+                "properties": [
+                    {
+                        "key": "BASE_CRITERIA_COLUMN",
+                        "value": "salary"
+                    },
+                    {
+                        "key": "UPPER_LIMIT",
+                        "value": "3000"
+                    },
+                    {
+                        "key": "LOWER_LIMIT",
+                        "value": "1000"
+                    },
+                    {
+                        "key": "FILTER_CONDITIONS",
+                        "value": "emp_id > 100"
+                    }
+                ],
+                "template": {
+                    "id": 3,
+                    "name": "RANGE_CHECK",
+                    "description": "compare source and target entities",
+                    "properties": [
+                        {
+                            "mandatory": true,
+                            "description": "Column on which null check needs to be performed",
+                            "type": "VARIABLE",
+                            "key": "BASE_CRITERIA_COLUMN"
+                        },
+                        {
+                            "mandatory": true,
+                            "description": "Condition to be applied on the column",
+                            "type": "PREDEFINED",
+                            "key": "BASE_CRITERIA",
+                            "value": "NOT({BASE_CRITERIA_COLUMN} BETWEEN {LOWER_LIMIT} AND {UPPER_LIMIT})"
+                        },
+                        {
+                            "mandatory": true,
+                            "description": "filter condition to be applied on the table",
+                            "type": "VARIABLE",
+                            "key": "FILTER_CONDITIONS"
+                        },
+                        {
+                            "mandatory": true,
+                            "description": "ACCURACY RANGE_CHECK UPPER_LIMIT",
+                            "type": "VARIABLE",
+                            "key": "UPPER_LIMIT"
+                        },
+                        {
+                            "mandatory": true,
+                            "description": "ACCURACY RANGE_CHECK LOWER_LIMIT",
+                            "type": "VARIABLE",
+                            "key": "LOWER_LIMIT"
+                        }
+                    ]
+                }
+            }
+        }
+    ]
+}

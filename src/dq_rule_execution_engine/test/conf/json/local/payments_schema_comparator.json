@@ -1,0 +1,61 @@
+{
+    "ruleset_id": 21783849,
+    "name": "payments_data_quality",
+    "description": "ruleset to verify data quality of payments",
+  	"notification_preferences": [
+		"EMAIL"
+	],
+    "rules" : [
+      {
+        "sequence": 1,
+        "status": "active",
+        "rule_details": {
+          "id": 31783855,
+          "name": "payment_source.payment_target.schema_comparator",
+          "description": "rule to compare schema of payment_source and payment_target tables",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783851",
+              "entity_name": "payment_source",
+              "entity_physical_name": "payment_source",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "FILE",
+              "entity_sub_type": "CSV",
+              "primary_key": "Transaction_Identifier",
+              "properties": [
+                {
+                  "key": "PATH",
+                  "value": "data\\input\\csv\\payment_source_altered.csv",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "entity_id": "185066052",
+              "entity_name": "payment_target",
+              "entity_physical_name": "payment_target",
+              "entity_behaviour": "TARGET",
+              "entity_type": "FILE",
+              "entity_sub_type": "CSV",
+              "primary_key": "Transaction_Identifier",
+              "properties": [
+                {
+                  "key": "PATH",
+                  "value": "data\\input\\csv\\payment_target_altered.csv",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "properties": [],
+          "template": {
+             "id": 28,
+             "name": "SCHEMA_COMPARATOR",
+             "description": "compare schema for source and target entities",
+             "dq_metric": "COMPLETENESS",
+             "properties": []
+          }
+        }
+      }
+    ]
+}

@@ -1,0 +1,1085 @@
+{
+    "ruleset_id": 21783848,
+    "name": "data quality checks on bank, account and payments data",
+    "description": "ruleset to verify data quality of bank, accounts and payments data",
+  	"notification_preferences": [
+		"EMAIL"
+	],
+    "rules" : [
+      {
+        "sequence": 1,
+        "status": "active",
+        "rule_details": {
+          "id": 87654321,
+          "name": "bank.bankcode.sql_validator",
+          "description": "rule to check if bank code is not among BARC and HSBC",
+          "dq_metric": "VALIDITY",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783849",
+              "entity_name": "Bank",
+              "entity_physical_name": "falcon_data_platform.Bank",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "TABLE",
+              "entity_sub_type": "BIG_QUERY",
+              "primary_key": "BANKID",
+              "properties": []
+            }
+          ],
+          "properties": [
+               {
+                 "key":"SOURCE_QUERY" ,
+                 "value":"select BANKID from Bank where BANKCODE not in ('BARC','HSBC')"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"1=1"
+               },
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"BANKCODE"
+               }
+          ],
+          "template": {
+             "id": 1,
+             "name": "SQL_VALIDATOR",
+             "description": "Apply sql rule for validity metric",
+             "properties": [
+               {
+                 "key":"SOURCE_QUERY" ,
+                 "type":"VARIABLE" ,
+                 "mandatory": true,
+                 "description": "source query to apply rule on source entity"
+
+               },
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+                {
+                    "mandatory": true,
+                    "description": "Condition to be get data on which rule needs to applied",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                }
+             ]
+          }
+        }
+      },
+	  {
+        "sequence": 2,
+        "status": "active",
+        "rule_details": {
+          "id": 87654322,
+          "name": "bank.postalcode.sql_validator",
+          "description": "rule to check if postal code length is not 5 digits",
+          "dq_metric": "CONFORMITY",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783849",
+              "entity_name": "Bank",
+              "entity_physical_name": "falcon_data_platform.Bank",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "TABLE",
+              "entity_sub_type": "BIG_QUERY",
+              "primary_key": "BANKID",
+              "properties": []
+            }
+          ],
+          "properties": [
+               {
+                 "key":"SOURCE_QUERY" ,
+                 "value":"select BANKID from Bank where length(POSTALCODE) <> 5"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"1=1"
+               },
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"POSTALCODE"
+               }
+          ],
+          "template": {
+             "id": 9,
+             "name": "SQL_VALIDATOR",
+             "description": "Apply sql rule for conformity metric",
+             "properties": [
+               {
+                 "key":"SOURCE_QUERY" ,
+                 "type":"VARIABLE" ,
+                 "mandatory": true,
+                 "description": "source query to apply rule on source entity"
+
+               },
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+                {
+                    "mandatory": true,
+                    "description": "Condition to be get data on which rule needs to applied",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                }
+             ]
+          }
+        }
+      },
+	  {
+        "sequence": 3,
+        "status": "active",
+        "rule_details": {
+          "id": 87654323,
+          "name": "bank.bankid.uniqueness_check",
+          "description": "rule to check if bank id is unique",
+          "dq_metric": "UNIQUENESS",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783849",
+              "entity_name": "Bank",
+              "entity_physical_name": "falcon_data_platform.Bank",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "TABLE",
+              "entity_sub_type": "BIG_QUERY",
+              "primary_key": "BANKID",
+              "properties": []
+            }
+          ],
+          "properties": [
+              {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"BANKID"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"1=1"
+               }
+
+          ],
+         "template": {
+             "id": 4,
+             "name": "UNIQUENESS_CHECK",
+             "description": "check if given column has unique values",
+             "properties": [
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+               {
+                   "mandatory": true,
+                   "description": "Condition to be applied on the column",
+                   "type": "PREDEFINED",
+                   "key": "BASE_CRITERIA",
+                   "value" : "group by {BASE_CRITERIA_COLUMN} having count({BASE_CRITERIA_COLUMN}) >1"
+                },
+                {
+                    "mandatory": true,
+                    "description": "filter condition to be applied on the table",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                 }
+             ]
+          }
+        }
+      },
+	  {
+        "sequence": 4,
+        "status": "active",
+        "rule_details": {
+          "id": 87654324,
+          "name": "bank.name.null_check",
+          "description": "rule to verify bank name should not be null",
+          "dq_metric": "COMPLETENESS",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783849",
+              "entity_name": "Bank",
+              "entity_physical_name": "falcon_data_platform.Bank",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "TABLE",
+              "entity_sub_type": "BIG_QUERY",
+              "primary_key": "BANKID",
+              "properties": []
+            }
+          ],
+          "properties": [
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"NAME"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"1=1"
+               }
+          ],
+          "template": {
+             "id": 2,
+             "name": "NULL_CHECK",
+             "description": "check for null values",
+             "properties": [
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+               {
+                   "mandatory": true,
+                   "description": "Condition to be applied on the column",
+                   "type": "PREDEFINED",
+                   "key": "BASE_CRITERIA",
+                   "value" : "{BASE_CRITERIA_COLUMN} IS NULL or trim(cast ({BASE_CRITERIA_COLUMN} as STRING))= ''"
+                },
+                {
+                    "mandatory": true,
+                    "description": "filter condition to be applied on the table",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                 }
+             ]
+          }
+        }
+      },
+	  {
+        "sequence": 5,
+        "status": "active",
+        "rule_details": {
+          "id": 87654325,
+          "name": "account.accountnumber.LENGTH_CHECK",
+          "description": "rule to check if account number length is not 18 digits",
+          "dq_metric": "CONFORMITY",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783850",
+              "entity_name": "Account",
+              "entity_physical_name": "falcon_data_platform.Account",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "TABLE",
+              "entity_sub_type": "BIG_QUERY",
+              "primary_key": "ACCOUNTID",
+              "properties": []
+            }
+          ],
+          "properties": [
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"ACCOUNTNUMBER"
+               },
+               {
+                 "key":"COLUMN_VALUE_LENGTH" ,
+                 "value":"18"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"1=1"
+               }
+          ],
+          "template": {
+             "id": 8,
+             "name": "LENGTH_CHECK",
+             "description": "check is value of column has length mentioned by user",
+             "properties": [
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+               {
+                  "mandatory": true,
+                  "description": "List of reference values for the base criteria column",
+                  "type": "VARIABLE",
+                  "key": "COLUMN_VALUE_LENGTH"
+               },
+               {
+                   "mandatory": true,
+                   "description": "Condition to be applied on the column",
+                   "type": "PREDEFINED",
+                   "key": "BASE_CRITERIA",
+                   "value" : "length({BASE_CRITERIA_COLUMN}) <> {COLUMN_VALUE_LENGTH}"
+                },
+                {
+                    "mandatory": true,
+                    "description": "filter condition to be applied on the table",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                 }
+             ]
+          }
+        }
+      },
+	  {
+        "sequence": 6,
+        "status": "active",
+        "rule_details": {
+          "id": 87654326,
+          "name": "account.accountid.uniqueness_check",
+          "description": "rule to check if account id is unique",
+          "dq_metric": "UNIQUENESS",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783850",
+              "entity_name": "Account",
+              "entity_physical_name": "falcon_data_platform.Account",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "TABLE",
+              "entity_sub_type": "BIG_QUERY",
+              "primary_key": "ACCOUNTID",
+              "properties": []
+            }
+          ],
+          "properties": [
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"ACCOUNTID"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"1=1"
+               }
+
+          ],
+         "template": {
+             "id": 4,
+             "name": "UNIQUENESS_CHECK",
+             "description": "check if given column has unique values",
+             "properties": [
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+               {
+                   "mandatory": true,
+                   "description": "Condition to be applied on the column",
+                   "type": "PREDEFINED",
+                   "key": "BASE_CRITERIA",
+                   "value" : "group by {BASE_CRITERIA_COLUMN} having count({BASE_CRITERIA_COLUMN}) >1"
+                },
+                {
+                    "mandatory": true,
+                    "description": "filter condition to be applied on the table",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                 }
+             ]
+          }
+        }
+      },
+	  {
+        "sequence": 7,
+        "status": "active",
+        "rule_details": {
+          "id": 87654327,
+          "name": "account.CreditOnHold.REFERENCE_VALUES_CHECK",
+          "description": "rule to check if credit on hold has valid boolean values",
+          "dq_metric": "VALIDITY",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783850",
+              "entity_name": "Account",
+              "entity_physical_name": "falcon_data_platform.Account",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "TABLE",
+              "entity_sub_type": "BIG_QUERY",
+              "primary_key": "ACCOUNTID",
+              "properties": []
+            }
+          ],
+          "properties": [
+               {
+                 "key":"REFERENCE_VALUES" ,
+                 "value":"0,1"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"1=1"
+               },
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"CREDITONHOLD"
+               }
+          ],
+           "template": {
+             "id": 6,
+             "name": "REFERENCE_VALUES_CHECK",
+             "description": "check if value of column in within reference list provided",
+             "properties": [
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+               {
+                  "mandatory": true,
+                  "description": "List of reference values for the base criteria column",
+                  "type": "VARIABLE",
+                  "key": "REFERENCE_VALUES"
+               },
+               {
+                   "mandatory": true,
+                   "description": "Condition to be applied on the column",
+                   "type": "PREDEFINED",
+                   "key": "BASE_CRITERIA",
+                   "value" : "{BASE_CRITERIA_COLUMN} NOT IN ({REFERENCE_VALUES})"
+                },
+                {
+                    "mandatory": true,
+                    "description": "filter condition to be applied on the table",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                 }
+             ]
+          }
+        }
+      },
+	  {
+        "sequence": 8,
+        "status": "active",
+        "rule_details": {
+          "id": 87654328,
+          "name": "account.ENTITYIMAGEID.null_check",
+          "description": "rule to verify entity image id should not be null",
+          "dq_metric": "COMPLETENESS",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783850",
+              "entity_name": "Account",
+              "entity_physical_name": "falcon_data_platform.Account",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "TABLE",
+              "entity_sub_type": "BIG_QUERY",
+              "primary_key": "ACCOUNTID",
+              "properties": []
+            }
+          ],
+          "properties": [
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"ENTITYIMAGEID"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"1=1"
+               }
+          ],
+          "template": {
+             "id": 2,
+             "name": "NULL_CHECK",
+             "description": "check for null values",
+             "properties": [
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+               {
+                   "mandatory": true,
+                   "description": "Condition to be applied on the column",
+                   "type": "PREDEFINED",
+                   "key": "BASE_CRITERIA",
+                   "value" : "{BASE_CRITERIA_COLUMN} IS NULL or trim(cast ({BASE_CRITERIA_COLUMN} as STRING))= ''"
+                },
+                {
+                    "mandatory": true,
+                    "description": "filter condition to be applied on the table",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                 }
+             ]
+          }
+        }
+      },
+      {
+        "sequence": 9,
+        "status": "active",
+        "rule_details": {
+          "id": 87654329,
+          "name": "account.creditlimit.range_check",
+          "description": "rule to validate if credit limit is in range 60000 to 70000",
+          "dq_metric": "VALIDITY",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783850",
+              "entity_name": "Account",
+              "entity_physical_name": "falcon_data_platform.Account",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "TABLE",
+              "entity_sub_type": "BIG_QUERY",
+              "primary_key": "ACCOUNTID",
+              "properties": []
+            }
+          ],
+          "properties": [
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"CREDITLIMIT"
+               },
+               {
+                 "key":"UPPER_LIMIT" ,
+                 "value":"60000"
+               },
+               {
+                 "key":"LOWER_LIMIT" ,
+                 "value":"70000"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"1=1"
+               }
+          ],
+          "template": {
+             "id": 3,
+             "name": "RANGE_CHECK",
+             "description": "compare source and target entities",
+             "properties": [
+                {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+               {
+                   "mandatory": true,
+                   "description": "Condition to be applied on the column",
+                   "type": "PREDEFINED",
+                   "key": "BASE_CRITERIA",
+                   "value" : "NOT({BASE_CRITERIA_COLUMN} BETWEEN {LOWER_LIMIT} AND {UPPER_LIMIT})"
+                },
+                {
+                     "mandatory": true,
+                     "description": "filter condition to be applied on the table",
+                     "type": "VARIABLE",
+                     "key": "FILTER_CONDITIONS"
+                 },
+               	 {
+                     "mandatory": true,
+                     "description": "ACCURACY RANGE_CHECK UPPER_LIMIT",
+                     "type": "VARIABLE",
+                      "key": "UPPER_LIMIT"
+                  },
+                  {
+                      "mandatory": true,
+                       "description": "ACCURACY RANGE_CHECK LOWER_LIMIT",
+                       "type": "VARIABLE",
+                       "key": "LOWER_LIMIT"
+                  }
+             ]
+          }
+        }
+      },
+      {
+        "sequence": 10,
+        "status": "active",
+        "rule_details": {
+          "id": 12345671,
+          "name": "payments.transaction_date.sql_validator",
+          "description": "rule to check if transaction date is not future date",
+          "dq_metric": "VALIDITY",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783847",
+              "entity_name": "Payments",
+              "entity_physical_name": "falcon_data_platform.Payments",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "TABLE",
+              "entity_sub_type": "BIG_QUERY",
+              "primary_key": "Transaction_Identifier",
+              "properties": []
+            }
+          ],
+          "properties": [
+               {
+                 "key":"SOURCE_QUERY" ,
+                 "value":"select Transaction_Identifier  from  Payments where Transaction_Date > Current_Date()"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"1=1"
+               },
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"Transaction_Date"
+               }
+          ],
+          "template": {
+             "id": 1,
+             "name": "SQL_VALIDATOR",
+             "description": "apply any sql rule on source entity",
+             "properties": [
+               {
+                 "key":"SOURCE_QUERY" ,
+                 "type":"VARIABLE" ,
+                 "mandatory": true,
+                 "description": "source query to apply rule on source entity"
+
+               },
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+                {
+                    "mandatory": true,
+                    "description": "Condition to be get data on which rule needs to applied",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                }
+             ]
+          }
+        }
+      },
+	  {
+        "sequence": 11,
+        "status": "active",
+        "rule_details": {
+          "id": 12345672,
+          "name": "payments.cheque_number.sql_validator",
+          "description": "rule to check if cheque number is 6 digits long",
+          "dq_metric": "CONFORMITY",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783847",
+              "entity_name": "Payments",
+              "entity_physical_name": "falcon_data_platform.Payments",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "TABLE",
+              "entity_sub_type": "BIG_QUERY",
+              "primary_key": "Transaction_Identifier",
+              "properties": []
+            }
+          ],
+          "properties": [
+               {
+                 "key":"SOURCE_QUERY" ,
+                 "value":"select Transaction_Identifier  from  Payments where Payment_Method ='Cheque' and length(cast (Cheque_Number as STRING))<6"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"Payment_Method ='Cheque'"
+               },
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"Cheque_Number"
+               }
+          ],
+          "template": {
+             "id": 9,
+             "name": "SQL_VALIDATOR",
+             "description": "apply any sql rule on source entity",
+             "properties": [
+               {
+                 "key":"SOURCE_QUERY" ,
+                 "type":"VARIABLE" ,
+                 "mandatory": true,
+                 "description": "source query to apply rule on source entity"
+
+               },
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+                {
+                    "mandatory": true,
+                    "description": "Condition to be get data on which rule needs to applied",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                }
+             ]
+          }
+        }
+      },
+	  {
+        "sequence": 12,
+        "status": "active",
+        "rule_details": {
+          "id": 12345675,
+          "name": "payments.Transaction_Identifier.uniqueness_check",
+          "description": "rule to check if Transaction Identifier is unique",
+          "dq_metric": "UNIQUENESS",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783847",
+              "entity_name": "Payments",
+              "entity_physical_name": "falcon_data_platform.Payments",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "TABLE",
+              "entity_sub_type": "BIG_QUERY",
+              "primary_key": "Transaction_Identifier",
+              "properties": []
+            }
+          ],
+          "properties": [
+              {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"Transaction_Identifier"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"1=1"
+               }
+          ],
+           "template": {
+             "id": 4,
+             "name": "UNIQUENESS_CHECK",
+             "description": "check if given column has unique values",
+             "properties": [
+               {
+                  "mandatory": true,
+                  "description": "Column on which unique check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+               {
+                   "mandatory": true,
+                   "description": "Condition to be applied on the column",
+                   "type": "PREDEFINED",
+                   "key": "BASE_CRITERIA",
+                   "value" : "group by {BASE_CRITERIA_COLUMN} having count({BASE_CRITERIA_COLUMN}) >1"
+                },
+                {
+                    "mandatory": true,
+                    "description": "filter condition to be applied on the table",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                 }
+             ]
+          }
+        }
+      },
+	  {
+        "sequence": 13,
+        "status": "active",
+        "rule_details": {
+          "id": 12345676,
+          "name": "payments.Payment_Type.REFERENCE_VALUES_CHECK",
+          "description": "rule to check if Payment Type is not wired for cash and cheque payment method",
+          "dq_metric": "ACCURACY",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783847",
+              "entity_name": "Payments",
+              "entity_physical_name": "falcon_data_platform.Payments",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "TABLE",
+              "entity_sub_type": "BIG_QUERY",
+              "primary_key": "Transaction_Identifier",
+              "properties": []
+            }
+          ],
+          "properties": [
+               {
+                 "key":"REFERENCE_VALUES" ,
+                 "value":"'Non-wired'"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"Payment_Method in ('Cash', 'Cheque')"
+               },
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"Payment_Type"
+               }
+          ],
+          "template": {
+             "id": 7,
+             "name": "REFERENCE_VALUES_CHECK",
+             "description": "check if value of column in withing reference list provided",
+             "properties": [
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+               {
+                  "mandatory": true,
+                  "description": "List of reference values for the base criteria column",
+                  "type": "VARIABLE",
+                  "key": "REFERENCE_VALUES"
+               },
+               {
+                   "mandatory": true,
+                   "description": "Condition to be applied on the column",
+                   "type": "PREDEFINED",
+                   "key": "BASE_CRITERIA",
+                   "value" : "{BASE_CRITERIA_COLUMN} NOT IN ({REFERENCE_VALUES})"
+                },
+                {
+                    "mandatory": true,
+                    "description": "filter condition to be applied on the table",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                 }
+             ]
+          }
+        }
+      },
+	  {
+        "sequence": 14,
+        "status": "active",
+        "rule_details": {
+          "id": 12345677,
+          "name": "payments.cheque_number.sql_validator",
+          "description": "rule to check if cheque number is not populated for payment methods other than cheque",
+          "dq_metric": "ACCURACY",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783847",
+              "entity_name": "Payments",
+              "entity_physical_name": "falcon_data_platform.Payments",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "TABLE",
+              "entity_sub_type": "BIG_QUERY",
+              "primary_key": "Transaction_Identifier",
+              "properties": []
+            }
+          ],
+          "properties": [
+               {
+                 "key":"SOURCE_QUERY" ,
+                 "value":"select Transaction_Identifier  from  Payments where Payment_Method <> 'Cheque' and (Cheque_Number IS not NULL or trim(cast (Cheque_Number as STRING))<> '')"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"Payment_Method <>'Cheque'"
+               },
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"Cheque_Number"
+               }
+          ],
+          "template": {
+             "id": 5,
+             "name": "SQL_VALIDATOR",
+             "description": "apply any sql rule on source entity",
+             "properties": [
+               {
+                 "key":"SOURCE_QUERY" ,
+                 "type":"VARIABLE" ,
+                 "mandatory": true,
+                 "description": "source query to apply rule on source entity"
+
+               },
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+                {
+                    "mandatory": true,
+                    "description": "Condition to be get data on which rule needs to applied",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                }
+             ]
+          }
+        }
+      },
+	  {
+        "sequence": 15,
+        "status": "active",
+        "rule_details": {
+          "id": 12345673,
+          "name": "payments.transaction_date.null_check",
+          "description": "rule to verify transaction date should not be null",
+          "dq_metric": "COMPLETENESS",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783847",
+              "entity_name": "Payments",
+              "entity_physical_name": "falcon_data_platform.Payments",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "TABLE",
+              "entity_sub_type": "BIG_QUERY",
+              "primary_key": "Transaction_Identifier",
+              "properties": []
+            }
+          ],
+          "properties": [
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"Transaction_Date"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"1=1"
+               }
+          ],
+          "template": {
+             "id": 2,
+             "name": "NULL_CHECK",
+             "description": "check for null values",
+             "properties": [
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+               {
+                   "mandatory": true,
+                   "description": "Condition to be applied on the column",
+                   "type": "PREDEFINED",
+                   "key": "BASE_CRITERIA",
+                   "value" : "{BASE_CRITERIA_COLUMN} IS NULL or trim(cast ({BASE_CRITERIA_COLUMN} as STRING))= ''"
+                },
+                {
+                    "mandatory": true,
+                    "description": "filter condition to be applied on the table",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                 }
+             ]
+          }
+        }
+      },
+	  {
+        "sequence": 16,
+        "status": "active",
+        "rule_details": {
+          "id": 12345674,
+          "name": "payments.cheque_number.null_check",
+          "description": "rule to verify cheque number should not be null for cheque payment method",
+          "dq_metric": "COMPLETENESS",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783847",
+              "entity_name": "Payments",
+              "entity_physical_name": "falcon_data_platform.Payments",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "TABLE",
+              "entity_sub_type": "BIG_QUERY",
+              "primary_key": "Transaction_Identifier",
+              "properties": []
+            }
+          ],
+          "properties": [
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"Cheque_Number"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"Payment_Method ='Cheque'"
+               }
+          ],
+          "template": {
+             "id": 2,
+             "name": "NULL_CHECK",
+             "description": "check for null values",
+             "properties": [
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+               {
+                   "mandatory": true,
+                   "description": "Condition to be applied on the column",
+                   "type": "PREDEFINED",
+                   "key": "BASE_CRITERIA",
+                   "value" : "{BASE_CRITERIA_COLUMN} IS NULL or trim(cast ({BASE_CRITERIA_COLUMN} as STRING))= ''"
+                },
+                {
+                    "mandatory": true,
+                    "description": "filter condition to be applied on the table",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                 }
+             ]
+          }
+        }
+      },
+      {
+        "sequence": 17,
+        "status": "active",
+        "rule_details": {
+          "id": 12345679,
+          "name": "payments.data_diff",
+          "description": "rule to check payment source and target data",
+          "dq_metric": "CONSISTENCY",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783851",
+              "entity_name": "payments",
+              "entity_physical_name": "payments",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "FILE",
+              "entity_sub_type": "CSV",
+              "primary_key": "Transaction_Identifier",
+              "properties": [
+                {
+                  "key": "PATH",
+                   "value": "gs://data-comparator-demo/data/payments/payment_source.csv",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "entity_id": "41783852",
+              "entity_name": "payments_target",
+              "entity_physical_name": "payments_target",
+              "entity_behaviour": "TARGET",
+              "entity_type": "FILE",
+              "entity_sub_type": "CSV",
+              "primary_key": "Transaction_Identifier",
+              "properties": [
+                {
+                  "key": "PATH",
+                   "value": "gs://data-comparator-demo/data/payments/Payment_target_data.csv",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "properties": [
+              {
+                 "key":"SOURCE_QUERY" ,
+                 "value":"select * from payments"
+               },
+               {
+                 "key":"TARGET_QUERY" ,
+                 "value":"select * from payments_target"
+               }
+          ],
+          "template": {
+             "id": 10,
+             "name": "DATA_DIFF",
+             "description": "compare source and target entities",
+             "dq_metric": "CONSISTENCY",
+             "properties": [
+               {
+                 "key":"SOURCE_QUERY" ,
+                 "type":"VARIABLE" ,
+                 "mandatory": true,
+                 "description": "source query for data comparator"
+
+               },
+               {
+                 "key":"TARGET_QUERY" ,
+                 "type":"VARIABLE" ,
+                 "mandatory": true ,
+                 "description": "target query for data comparator"
+               }
+             ]
+          }
+        }
+      }
+    ]
+}

@@ -1,0 +1,339 @@
+{
+    "ruleset_id": 21783847,
+    "name": "order_data_quality",
+    "description": "ruleset to verify data quality of order data",
+  	"notification_preferences": [
+		"EMAIL"
+	],
+    "rules" : [
+      {
+        "sequence": 1,
+        "status": "active",
+        "rule_details": {
+          "id": 31783846,
+          "name": "order.order_id.null_check",
+          "description": "rule to verify emp id should not be null",
+          "dq_metric": "COMPLETENESS",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783846",
+              "entity_name": "order_data",
+              "entity_physical_name": "order_id",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "FILE",
+              "entity_sub_type": "CSV",
+              "primary_key": "order_id",
+              "properties": [
+                {
+                  "key": "PATH",
+                  "value": "data\\input\\csv\\order_data_29042024.csv",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "properties": [
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"order_id"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"order_id < 100"
+               }
+          ],
+          "template": {
+             "id": 28,
+             "name": "NULL_CHECK",
+             "description": "compare source and target entities",
+             "properties": [
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+               {
+                   "mandatory": true,
+                   "description": "Condition to be applied on the column",
+                   "type": "PREDEFINED",
+                   "key": "BASE_CRITERIA",
+                   "value" : "{BASE_CRITERIA_COLUMN} IS NULL"
+                },
+                {
+                    "mandatory": true,
+                    "description": "filter condition to be applied on the table",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                 }
+             ]
+          }
+        }
+      },
+      {
+        "sequence": 2,
+        "status": "active",
+        "rule_details": {
+          "id": 31783847,
+          "name": "order.order_id.range_check",
+          "description": "rule to validate is salary is in range 25000 to 100000",
+          "dq_metric": "ACCURACY",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783846",
+              "entity_name": "order_data",
+              "entity_physical_name": "order_data",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "FILE",
+              "entity_sub_type": "CSV",
+              "primary_key": "order_id",
+              "properties": [
+                {
+                  "key": "PATH",
+                  "value": "data\\input\\csv\\order_data_29042024.csv",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "properties": [
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"customer_id"
+               },
+               {
+                 "key":"UPPER_LIMIT" ,
+                 "value":"25"
+               },
+               {
+                 "key":"LOWER_LIMIT" ,
+                 "value":"1"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"order_id < 100"
+               }
+          ],
+          "template": {
+             "id": 28,
+             "name": "RANGE_CHECK",
+             "description": "compare source and target entities",
+             "properties": [
+                {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+               {
+                   "mandatory": true,
+                   "description": "Condition to be applied on the column",
+                   "type": "PREDEFINED",
+                   "key": "BASE_CRITERIA",
+                   "value" : "({BASE_CRITERIA_COLUMN} BETWEEN {LOWER_LIMIT} AND {UPPER_LIMIT})"
+                },
+                {
+                     "mandatory": true,
+                     "description": "filter condition to be applied on the table",
+                     "type": "VARIABLE",
+                     "key": "FILTER_CONDITIONS"
+                 },
+               	 {
+                     "mandatory": true,
+                     "description": "ACCURACY RANGE_CHECK UPPER_LIMIT",
+                     "type": "VARIABLE",
+                      "key": "UPPER_LIMIT"
+                  },
+                  {
+                      "mandatory": true,
+                       "description": "ACCURACY RANGE_CHECK LOWER_LIMIT",
+                       "type": "VARIABLE",
+                       "key": "LOWER_LIMIT"
+                  }
+             ]
+          }
+        }
+      },
+      {
+        "sequence": 3,
+        "status": "active",
+        "rule_details": {
+          "id": 31783848,
+          "name": "order.order_id.sql_validator",
+          "description": "rule to check if minimum customer_id is 10",
+          "dq_metric": "VALIDITY",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783846",
+              "entity_name": "order_data",
+              "entity_physical_name": "order_data",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "FILE",
+              "entity_sub_type": "CSV",
+              "primary_key": "order_id",
+              "properties": [
+                {
+                  "key": "PATH",
+                  "value": "data\\input\\csv\\order_data_29042024.csv",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "properties": [
+               {
+                 "key":"SOURCE_QUERY" ,
+                 "value":"select order_id from order_data where order_status = 4"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"order_id < 100"
+               },
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"status"
+               }
+          ],
+          "template": {
+             "id": 28,
+             "name": "SQL_VALIDATOR",
+             "description": "apply any sql rule on source entity",
+             "properties": [
+               {
+                 "key":"SOURCE_QUERY" ,
+                 "type":"VARIABLE" ,
+                 "mandatory": true,
+                 "description": "source query to apply rule on source entity"
+
+               },
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+                {
+                    "mandatory": true,
+                    "description": "Condition to be get data on which rule needs to applied",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                }
+             ]
+          }
+        }
+      },
+	  {
+        "sequence": 4,
+        "status": "active",
+        "rule_details": {
+          "id": 31783849,
+          "name": "order.order_id.null_check",
+          "description": "rule to verity Transaction_Identifier should be unique",
+          "dq_metric": "UNIQUENESS",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783846",
+              "entity_name": "order",
+              "entity_physical_name": "order_data",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "FILE",
+              "entity_sub_type": "CSV",
+              "primary_key": "order_id",
+              "properties": [
+                {
+                  "key": "PATH",
+                  "value": "data\\input\\csv\\order_data_29042024.csv",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "properties": [
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"order_id"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"1=1"
+               }
+          ],
+          "template": {
+             "id": 28,
+             "name": "UNIQUENESS_CHECK",
+             "description": "check if given column has unique values",
+             "properties": [
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+               {
+                   "mandatory": true,
+                   "description": "Condition to be applied on the column",
+                   "type": "PREDEFINED",
+                   "key": "BASE_CRITERIA",
+                   "value" : "group by {BASE_CRITERIA_COLUMN} having count({BASE_CRITERIA_COLUMN}) >1"
+                },
+                {
+                    "mandatory": true,
+                    "description": "filter condition to be applied on the table",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                 }
+             ]
+          }
+        }
+      },
+	  {
+        "sequence": 5,
+        "status": "active",
+        "rule_details": {
+          "id": 31783850,
+          "name": "order.order_id.column_count_check",
+          "description": "rule to verity column count of order_data file",
+          "dq_metric": "VOLUME",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783856",
+              "entity_name": "order",
+              "entity_physical_name": "order_data",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "FILE",
+              "entity_sub_type": "CSV",
+              "primary_key": "order_id",
+              "properties": [
+                {
+                  "key": "PATH",
+                  "value": "data\\input\\csv\\order_data_29042024.csv",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "properties": [
+               {
+                 "key":"COLUMN_COUNT" ,
+                 "value":8
+               }
+          ],
+          "template": {
+             "id": 29,
+             "name": "COLUMN_COUNT_CHECK",
+             "description": "check if given entity has specific number of columns",
+             "properties": [
+               {
+                   "mandatory": true,
+                   "description": "expected column count value",
+                   "type": "VARIABLE",
+                   "key": "COLUMN_COUNT"
+                }
+             ]
+          }
+        }
+      }
+
+
+    ]
+}

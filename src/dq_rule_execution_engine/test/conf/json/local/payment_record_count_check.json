@@ -1,0 +1,67 @@
+{
+    "ruleset_id": 21783848,
+    "name": "payments_data_quality",
+    "description": "ruleset to verify data quality of payments file",
+  	"notification_preferences": [
+		"EMAIL"
+	],
+    "rules" : [
+      {
+        "sequence": 1,
+        "status": "active",
+        "rule_details": {
+          "id": 31783941,
+          "name": "payment.transaction_identifier.record_count_check",
+          "description": "rule to verify record count of payments file",
+          "dq_metric": "VOLUME",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783856",
+              "entity_name": "payment",
+              "entity_physical_name": "payment",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "FILE",
+              "entity_sub_type": "CSV",
+              "primary_key": "Transaction_Identifier",
+              "properties": [
+                {
+                  "key": "PATH",
+                  "value": "data\\input\\csv\\payment.csv",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "properties": [
+               {
+                 "key":"RECORD_COUNT",
+                 "value":"10"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"1=1"
+               }
+          ],
+          "template": {
+             "id": 29,
+             "name": "RECORD_COUNT_CHECK",
+             "description": "check if given entity has specific number of records",
+             "properties": [
+               {
+                   "mandatory": true,
+                   "description": "expected record count value",
+                   "type": "VARIABLE",
+                   "key": "RECORD_COUNT"
+                },
+                {
+                    "mandatory": true,
+                    "description": "filter condition to be applied on entity",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                 }
+             ]
+          }
+        }
+      }
+    ]
+}

@@ -1,0 +1,84 @@
+{
+    "ruleset_id": 21783846,
+    "name": "employee_data_quality",
+    "description": "ruleset to verify data quality of payments data",
+  	"notification_preferences": [
+		"EMAIL"
+	],
+    "rules" : [
+      {
+        "sequence": 1,
+        "status": "active",
+        "rule_details": {
+          "id": 31783847,
+          "name": "employee.emp_id.null_check",
+          "description": "rule to verify Payment_Method should be in 'Cash','Cheque' ",
+          "dq_metric": "VALIDITY",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783856",
+              "entity_name": "payment",
+              "entity_physical_name": "payment",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "FILE",
+              "entity_sub_type": "CSV",
+              "primary_key": "Transaction_Identifier",
+              "properties": [
+                {
+                  "key": "PATH",
+                  "value": "data\\input\\csv\\payment.csv",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "properties": [
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"Payment_Method"
+               },
+               {
+                 "key":"REFERENCE_VALUES" ,
+                 "value":"'Cash','Cheque'"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"1=1"
+               }
+          ],
+          "template": {
+             "id": 28,
+             "name": "REFERENCE_VALUES_CHECK",
+             "description": "check is value of column in withing reference list provided",
+             "properties": [
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+               {
+                  "mandatory": true,
+                  "description": "List of reference values for the base criteria column",
+                  "type": "VARIABLE",
+                  "key": "REFERENCE_VALUES"
+               },
+               {
+                   "mandatory": true,
+                   "description": "Condition to be applied on the column",
+                   "type": "PREDEFINED",
+                   "key": "BASE_CRITERIA",
+                   "value" : "{BASE_CRITERIA_COLUMN} NOT IN ({REFERENCE_VALUES})"
+                },
+                {
+                    "mandatory": true,
+                    "description": "filter condition to be applied on the table",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                 }
+             ]
+          }
+        }
+      }
+    ]
+}

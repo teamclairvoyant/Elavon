@@ -1,0 +1,57 @@
+{
+    "ruleset_id": 21783847,
+    "name": "payments_data_quality",
+    "description": "ruleset to verify payments file have always 10 columns",
+  	"notification_preferences": [
+		"EMAIL"
+	],
+    "rules" : [
+      {
+        "sequence": 1,
+        "status": "active",
+        "rule_details": {
+          "id": 31783942,
+          "name": "payment.transaction_identifier.column_count_check",
+          "description": "rule to verity column count of payments file",
+          "dq_metric": "VOLUME",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783856",
+              "entity_name": "payment",
+              "entity_physical_name": "payment",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "FILE",
+              "entity_sub_type": "CSV",
+              "primary_key": "Transaction_Identifier",
+              "properties": [
+                {
+                  "key": "PATH",
+                  "value": "data\\input\\csv\\payment.csv",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "properties": [
+               {
+                 "key":"COLUMN_COUNT",
+                 "value":"32"
+               }
+          ],
+          "template": {
+             "id": 29,
+             "name": "COLUMN_COUNT_CHECK",
+             "description": "check if given entity has specific number of columns",
+             "properties": [
+               {
+                   "mandatory": true,
+                   "description": "expected column count value",
+                   "type": "VARIABLE",
+                   "key": "COLUMN_COUNT"
+                }
+             ]
+          }
+        }
+      }
+    ]
+}

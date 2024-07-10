@@ -1,0 +1,84 @@
+{
+    "ruleset_id": 21783846,
+    "name": "employee_data_quality",
+    "description": "ruleset to verify data quality of payment data",
+  	"notification_preferences": [
+		"EMAIL"
+	],
+    "rules" : [
+      {
+        "sequence": 1,
+        "status": "active",
+        "rule_details": {
+          "id": 31783847,
+          "name": "employee.emp_id.null_check",
+          "description": "rule to verify if Debit_Account_Type should be of length 3",
+          "dq_metric": "ACCURACY",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783856",
+              "entity_name": "payment",
+              "entity_physical_name": "payment",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "FILE",
+              "entity_sub_type": "CSV",
+              "primary_key": "Transaction_Identifier",
+              "properties": [
+                {
+                  "key": "PATH",
+                  "value": "data\\input\\csv\\payment.csv",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "properties": [
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"Debit_Account_Type"
+               },
+               {
+                 "key":"COLUMN_VALUE_LENGTH" ,
+                 "value":"3"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"1=1"
+               }
+          ],
+          "template": {
+             "id": 28,
+             "name": "LENGTH_CHECK",
+             "description": "check if length of value of given column is equal to given value",
+             "properties": [
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+               {
+                  "mandatory": true,
+                  "description": "List of reference values for the base criteria column",
+                  "type": "VARIABLE",
+                  "key": "COLUMN_VALUE_LENGTH"
+               },
+               {
+                   "mandatory": true,
+                   "description": "Condition to be applied on the column",
+                   "type": "PREDEFINED",
+                   "key": "BASE_CRITERIA",
+                   "value" : "length({BASE_CRITERIA_COLUMN}) <> {COLUMN_VALUE_LENGTH}"
+                },
+                {
+                    "mandatory": true,
+                    "description": "filter condition to be applied on the table",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                 }
+             ]
+          }
+        }
+      }
+    ]
+}

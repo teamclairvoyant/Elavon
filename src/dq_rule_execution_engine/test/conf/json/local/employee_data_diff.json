@@ -1,0 +1,84 @@
+{
+    "ruleset_id": 21783846,
+    "name": "employee_data_quality",
+    "description": "ruleset to verify data quality of employee data",
+  	"notification_preferences": [
+		"EMAIL"
+	],
+    "rules" : [
+      {
+        "sequence": 1,
+        "status": "active",
+        "rule_details": {
+          "id": 31783849,
+          "name": "employee.emp_id.data_diff",
+          "description": "rule to compare employee and employee_migrated tables",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783846",
+              "entity_name": "employee",
+              "entity_physical_name": "employee",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "FILE",
+              "entity_sub_type": "CSV",
+              "primary_key": "emp_id",
+              "properties": [
+                {
+                  "key": "PATH",
+                  "value": "data\\input\\csv\\employee_source.csv",
+                  "type": "string"
+                }
+              ]
+            },
+            {
+              "entity_id": "185066047",
+              "entity_name": "employee_migrated",
+              "entity_physical_name": "employee_migrated",
+              "entity_behaviour": "TARGET",
+              "entity_type": "FILE",
+              "entity_sub_type": "CSV",
+              "primary_key": "emp_id",
+              "properties": [
+                {
+                  "key": "PATH",
+                  "value": "data\\input\\csv\\employee_target.csv",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "properties": [
+               {
+                 "key":"SOURCE_QUERY" ,
+                 "value":"select * from employee"
+               },
+               {
+                 "key":"TARGET_QUERY" ,
+                 "value":"select * from employee_migrated"
+               }
+          ],
+          "template": {
+             "id": 28,
+             "name": "DATA_DIFF",
+             "description": "compare source and target entities",
+             "dq_metric": "COMPLETENESS",
+             "properties": [
+               {
+                 "key":"SOURCE_QUERY" ,
+                 "type":"VARIABLE" ,
+                 "mandatory": true,
+                 "description": "source query for data comparator"
+
+               },
+               {
+                 "key":"TARGET_QUERY" ,
+                 "type":"VARIABLE" ,
+                 "mandatory": true ,
+                 "description": "target query for data comparator"
+               }
+             ]
+          }
+        }
+      }
+    ]
+}

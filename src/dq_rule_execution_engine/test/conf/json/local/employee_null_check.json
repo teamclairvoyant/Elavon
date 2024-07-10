@@ -1,0 +1,75 @@
+{
+    "ruleset_id": 21783846,
+    "name": "employee_data_quality",
+    "description": "ruleset to verify data quality of employee data",
+  	"notification_preferences": [
+		"EMAIL"
+	],
+    "rules" : [
+      {
+        "sequence": 1,
+        "status": "active",
+        "rule_details": {
+          "id": 31783846,
+          "name": "employee.emp_id.null_check",
+          "description": "rule to verify emp id should not be null",
+          "dq_metric": "COMPLETENESS",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783846",
+              "entity_name": "employee",
+              "entity_physical_name": "employee",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "FILE",
+              "entity_sub_type": "CSV",
+              "primary_key": "emp_id",
+              "properties": [
+                {
+                  "key": "PATH",
+                  "value": "data\\input\\csv\\employee.csv",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "properties": [
+               {
+                 "key":"BASE_CRITERIA_COLUMN" ,
+                 "value":"name"
+               },
+               {
+                 "key":"FILTER_CONDITIONS" ,
+                 "value":"emp_id > 100"
+               }
+          ],
+          "template": {
+             "id": 28,
+             "name": "NULL_CHECK",
+             "description": "compare source and target entities",
+             "properties": [
+               {
+                  "mandatory": true,
+                  "description": "Column on which null check needs to be performed",
+                  "type": "VARIABLE",
+                  "key": "BASE_CRITERIA_COLUMN"
+               },
+               {
+                   "mandatory": true,
+                   "description": "Condition to be applied on the column",
+                   "type": "PREDEFINED",
+                   "key": "BASE_CRITERIA",
+                   "value" : "{BASE_CRITERIA_COLUMN} IS NULL or trim(cast ({BASE_CRITERIA_COLUMN} as STRING))= ''"
+
+                },
+                {
+                    "mandatory": true,
+                    "description": "filter condition to be applied on the table",
+                    "type": "VARIABLE",
+                    "key": "FILTER_CONDITIONS"
+                 }
+             ]
+          }
+        }
+      }
+    ]
+}

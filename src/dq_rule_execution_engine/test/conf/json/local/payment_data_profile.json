@@ -1,0 +1,58 @@
+{
+    "ruleset_id": 21783846,
+    "name": "employee_data_profiling",
+    "description": "ruleset to profile entities",
+  	"notification_preferences": [
+		"EMAIL"
+	],
+    "rules" : [
+      {
+        "sequence": 1,
+        "status": "active",
+        "rule_details": {
+          "id": 31783847,
+          "name": "employee.emp_id.profile",
+          "description": "rule to profile payment table ",
+          "dq_metric": "UNIQUENESS",
+          "data_entity_associations": [
+            {
+              "entity_id": "41783856",
+              "entity_name": "payment",
+              "entity_physical_name": "payment",
+              "entity_behaviour": "SOURCE",
+              "entity_type": "FILE",
+              "entity_sub_type": "PARQUET",
+              "primary_key": "Transaction_Identifier",
+              "properties": [
+                {
+                  "key": "PATH",
+                  "value": "data/input/csv/payment.parquet",
+                  "type": "string"
+                }
+              ]
+            }
+          ],
+          "properties": [
+               {
+                 "key":"SOURCE_QUERY" ,
+                  "value":"select * from payment"
+               }
+          ],
+          "template": {
+             "id": 28,
+             "name": "DATA_PROFILER",
+             "description": "rule to profile given entity",
+             "properties": [
+               {
+                 "key":"SOURCE_QUERY" ,
+                 "type":"VARIABLE" ,
+                 "mandatory": false,
+                 "description": "source query on which returns data to be considered for profiling"
+
+               }
+             ]
+          }
+        }
+      }
+    ]
+}
