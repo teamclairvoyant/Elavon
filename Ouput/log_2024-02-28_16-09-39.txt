@@ -1,2 +1,0 @@
-2024-02-28 16:09:42,726 - INFO - Encrypted data saved successfully at: C:\\Users\\RAKI\\Downloads\\encrypted_data.txt
-2024-02-28 16:09:42,734 - INFO - Decrypted data saved successfully.

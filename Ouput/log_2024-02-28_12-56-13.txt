@@ -1,2 +1,0 @@
-2024-02-28 12:56:16,387 - ERROR - Error occurred: 'DataFrame' object has no attribute 'encode'
-2024-02-28 12:56:16,425 - INFO - Decrypted data saved successfully.
